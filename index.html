@@ -1,553 +1,497 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUANTUM MATRIX</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CROSSROADS</title>
+<style>
+/* Base reset - embrace browser defaults like xerox embraced machine limits */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            background: #000;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            overflow: hidden;
-            cursor: none;
-            position: relative;
-        }
+body {
+    background: #1a1815;
+    overflow-x: hidden;
+    font-family: monospace;
+    cursor: crosshair;
+    color: #f4f1e8;
+}
 
-        /* Custom Cursor */
-        #cursor {
-            width: 40px;
-            height: 40px;
-            position: fixed;
-            pointer-events: none;
-            z-index: 10000;
-            mix-blend-mode: difference;
-            transition: transform 0.1s ease-out;
-        }
+/* The site degrades with each visit - like photocopies of photocopies */
+:root {
+    --generation: 1;
+    --contrast: 100%;
+    --noise: 0.02;
+    --drift: 0deg;
+    --bleed: 0px;
+}
 
-        #cursor::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, #ff0000 0%, transparent 70%);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
+/* Canvas for generative flyer system */
+#flyer-generator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.3;
+}
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-        }
+/* Main content emerges from noise */
+.venue-data {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    padding: 20px;
+    filter: contrast(var(--contrast)) blur(var(--bleed));
+    transform: rotate(var(--drift));
+}
 
-        /* Matrix Background */
-        #matrix-bg {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+/* Tonight's billboard */
+.tonight-billboard {
+    background: linear-gradient(180deg, #000 0%, #111 100%);
+    border: 3px solid #f4f1e8;
+    padding: 30px;
+    margin: 20px 0 40px 0;
+    position: relative;
+    overflow: hidden;
+}
 
-        /* Main Container */
-        #quantum-space {
-            width: 100vw;
-            height: 100vh;
-            perspective: 1500px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+.tonight-billboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(244,241,232,0.02) 10px,
+        rgba(244,241,232,0.02) 11px
+    );
+}
 
-        /* 3D Sphere Container */
-        #sphere {
-            width: 600px;
-            height: 600px;
-            position: relative;
-            transform-style: preserve-3d;
-            animation: rotate 20s infinite linear;
-            transition: transform 0.5s ease-out;
-        }
+.tonight-billboard h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 0.1em;
+}
 
-        @keyframes rotate {
-            0% { transform: rotateX(0) rotateY(0) rotateZ(0); }
-            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
-        }
+.current-show {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(244,241,232,0.3);
+}
 
-        /* Quantum Nodes */
-        .quantum-node {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            transform-style: preserve-3d;
-            cursor: pointer;
-            transition: all 0.3s ease-out;
-        }
+.current-show:last-child {
+    border-bottom: none;
+}
 
-        .node-core {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: linear-gradient(45deg, #ff0000, #8b0000, #ff0000);
-            border-radius: 20px;
-            box-shadow: 
-                0 0 50px #ff0000,
-                inset 0 0 50px rgba(255,0,0,0.5),
-                0 0 100px rgba(255,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            font-weight: bold;
-            animation: nodeGlow 3s infinite ease-in-out;
-            transform: translateZ(20px);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,0,0,0.5);
-        }
+/* Weathered sticky notes */
+.sticky-note {
+    background: linear-gradient(
+        135deg,
+        #f4e19c 0%,
+        #e8d589 40%,
+        #d9c574 70%,
+        #c8b35f 100%
+    );
+    color: #1a1815;
+    padding: 20px;
+    margin: 15px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    transform: rotate(-1deg);
+    position: relative;
+    max-width: 300px;
+    display: inline-block;
+    vertical-align: top;
+}
 
-        @keyframes nodeGlow {
-            0%, 100% { 
-                box-shadow: 
-                    0 0 50px #ff0000,
-                    inset 0 0 50px rgba(255,0,0,0.5),
-                    0 0 100px rgba(255,0,0,0.3);
-            }
-            50% { 
-                box-shadow: 
-                    0 0 80px #ff0000,
-                    inset 0 0 80px rgba(255,0,0,0.8),
-                    0 0 150px rgba(255,0,0,0.5);
-            }
-        }
+/* Weathering effects */
+.sticky-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(139,69,19,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(160,82,45,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(139,90,43,0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
 
-        .quantum-node:hover .node-core {
-            transform: translateZ(50px) scale(1.2);
-            background: linear-gradient(45deg, #ff0000, #ff6666, #ff0000);
-            box-shadow: 
-                0 0 100px #ff0000,
-                inset 0 0 80px rgba(255,255,255,0.3),
-                0 0 200px rgba(255,0,0,0.5);
-        }
+/* Tape effect */
+.sticky-note::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 20px;
+    background: rgba(255,255,255,0.3);
+    opacity: 0.7;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
 
-        /* Neural Connections */
-        .neural-connection {
-            position: absolute;
-            background: linear-gradient(90deg, transparent, #ff0000, transparent);
-            height: 2px;
-            transform-origin: left center;
-            animation: pulse-connection 2s infinite;
-            opacity: 0.3;
-            filter: blur(1px);
-        }
+/* Coffee stains and wear */
+.stain {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,69,19,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
 
-        @keyframes pulse-connection {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
+/* Hand-drawn text simulation */
+.hand-drawn {
+    filter: url(#roughPaper);
+    font-size: 2.5em;
+    font-weight: bold;
+    letter-spacing: -0.05em;
+    margin-bottom: 20px;
+}
 
-        /* Portal Content */
-        .portal-content {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0) rotateX(90deg);
-            width: 80%;
-            max-width: 800px;
-            height: 80%;
-            max-height: 600px;
-            background: linear-gradient(135deg, rgba(139,0,0,0.9), rgba(0,0,0,0.9));
-            border: 3px solid #ff0000;
-            border-radius: 20px;
-            padding: 40px;
-            opacity: 0;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
-            overflow-y: auto;
-            box-shadow: 
-                0 0 100px rgba(255,0,0,0.5),
-                inset 0 0 50px rgba(255,0,0,0.3);
-            backdrop-filter: blur(20px);
-        }
+/* Photocopier banding effect */
+.banding::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.02) 3px,
+        rgba(255,255,255,0.02) 4px
+    );
+    pointer-events: none;
+    animation: feedError 7s infinite;
+}
 
-        .portal-content.active {
-            transform: translate(-50%, -50%) scale(1) rotateX(0);
-            opacity: 1;
-        }
+@keyframes feedError {
+    0%, 95% { transform: translateX(0); }
+    96% { transform: translateX(-2px) skewY(0.5deg); }
+    97% { transform: translateX(1px); }
+    100% { transform: translateX(0); }
+}
 
-        .portal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: #ff0000;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            color: #000;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
+/* Gibberish text */
+.gibberish-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    letter-spacing: -0.05em;
+}
 
-        .portal-close:hover {
-            transform: rotate(90deg) scale(1.2);
-            background: #ff6666;
-            box-shadow: 0 0 30px #ff0000;
-        }
+/* Kaleidoscopic background */
+.kaleidoscope {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 200vmax;
+    height: 200vmax;
+    transform: translate(-50%, -50%);
+    opacity: 0.05;
+    z-index: 0;
+}
 
-        /* Particle System */
-        .particle {
-            position: fixed;
-            width: 4px;
-            height: 4px;
-            background: #ff0000;
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0;
-            box-shadow: 0 0 10px #ff0000;
-        }
+.kaleidoscope-layer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        from var(--angle) at 50% 50%,
+        transparent 0deg,
+        #f4f1e8 5deg,
+        transparent 10deg,
+        transparent 20deg,
+        #f4f1e8 25deg,
+        transparent 30deg
+    );
+    animation: kaleidoscope-spin var(--speed) linear infinite;
+}
 
-        /* Glitch Effect */
-        .glitch {
-            animation: glitch 0.3s;
-        }
+@keyframes kaleidoscope-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 
-        @keyframes glitch {
-            0%, 100% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-        }
+/* Anti-compliance: The more you interact, the worse it gets */
+body.degraded-1 { --contrast: 110%; --noise: 0.05; }
+body.degraded-2 { --contrast: 130%; --noise: 0.1; --drift: 0.5deg; }
+body.degraded-3 { --contrast: 150%; --noise: 0.2; --drift: 1deg; --bleed: 0.5px; }
+body.degraded-4 { --contrast: 200%; --noise: 0.4; --drift: 2deg; --bleed: 1px; }
+body.degraded-5 { filter: invert(1); --drift: -3deg; --bleed: 2px; }
 
-        /* Title */
-        #title {
-            position: fixed;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 48px;
-            letter-spacing: 10px;
-            text-transform: uppercase;
-            background: linear-gradient(45deg, #ff0000, #fff, #ff0000);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: title-glow 3s infinite;
-            z-index: 100;
-        }
+/* Emergency broadcast system */
+.system-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: red;
+    color: white;
+    padding: 10px;
+    font-family: monospace;
+    display: none;
+    animation: glitch 0.1s infinite;
+    z-index: 1000;
+}
 
-        @keyframes title-glow {
-            0%, 100% { filter: drop-shadow(0 0 20px #ff0000); }
-            50% { filter: drop-shadow(0 0 40px #ff0000) drop-shadow(0 0 60px #fff); }
-        }
+@keyframes glitch {
+    0% { transform: translateX(0); }
+    33% { transform: translateX(-2px); }
+    66% { transform: translateX(2px); }
+    100% { transform: translateX(0); }
+}
 
-        /* Energy Field */
-        #energy-field {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            opacity: 0.1;
-            background: 
-                radial-gradient(circle at 20% 50%, #ff0000 0%, transparent 50%),
-                radial-gradient(circle at 80% 50%, #8b0000 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, #ff6666 0%, transparent 50%);
-            animation: energy-pulse 4s infinite;
-            mix-blend-mode: screen;
-        }
+/* Venue rules section */
+.venue-rules {
+    background: rgba(0,0,0,0.8);
+    border: 2px solid #f4f1e8;
+    padding: 20px;
+    margin: 30px 0;
+    max-width: 600px;
+}
 
-        @keyframes energy-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.1; }
-            50% { transform: scale(1.1); opacity: 0.3; }
-        }
+.venue-rules h3 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
 
-        /* Loading Screen */
-        #loading {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            font-size: 24px;
-            letter-spacing: 5px;
-        }
+.venue-rules li {
+    list-style: none;
+    padding: 5px 0;
+}
 
-        .loading-text {
-            animation: loading-pulse 1s infinite;
-        }
+.venue-rules li::before {
+    content: "→ ";
+    color: #f4f1e8;
+}
 
-        @keyframes loading-pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
+/* Past shows section */
+.past-shows {
+    margin-top: 50px;
+}
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            #sphere {
-                width: 400px;
-                height: 400px;
-            }
-            .quantum-node {
-                width: 80px;
-                height: 80px;
-            }
-            .node-core {
-                font-size: 40px;
-            }
-            #title {
-                font-size: 32px;
-                letter-spacing: 5px;
-            }
-        }
-    </style>
+.past-shows h3 {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+/* Browser as photocopier */
+@media print {
+    body {
+        filter: contrast(300%) brightness(0.8);
+    }
+    .no-print { display: none; }
+}
+</style>
 </head>
 <body>
-    <div id="loading">
-        <div class="loading-text">INITIALIZING QUANTUM MATRIX...</div>
-    </div>
 
-    <div id="cursor"></div>
-    <canvas id="matrix-bg"></canvas>
-    <div id="energy-field"></div>
-    
-    <h1 id="title">TITLE</h1>
+<!-- SVG Filters for hand-drawn effect -->
+<svg style="display: none">
+    <filter id="roughPaper">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="5" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1"/>
+    </filter>
+</svg>
 
-    <div id="quantum-space">
-        <div id="sphere">
-            <!-- Quantum Nodes will be generated here -->
+<!-- Kaleidoscopic background -->
+<div class="kaleidoscope">
+    <div class="kaleidoscope-layer" style="--angle: 0deg; --speed: 60s;"></div>
+    <div class="kaleidoscope-layer" style="--angle: 45deg; --speed: 90s; transform: scale(0.8);"></div>
+    <div class="kaleidoscope-layer" style="--angle: 90deg; --speed: 120s; transform: scale(0.6);"></div>
+    <div class="kaleidoscope-layer" style="--angle: 135deg; --speed: 45s; transform: scale(1.2);"></div>
+</div>
+
+<!-- Dynamic flyer canvas -->
+<canvas id="flyer-generator"></canvas>
+
+<!-- Main venue interface -->
+<div class="venue-data banding">
+    <div class="deteriorate">
+        <h1 class="hand-drawn">[CROSS/ROADS]</h1>
+        
+        <!-- Tonight's show billboard -->
+        <div class="tonight-billboard">
+            <h2>UPCOMING SHOW: 12/14</h2>
+            <div class="current-show">
+                <span class="gibberish-text">▓▓█░ ░▓██</span>
+                <span>7:30PM</span>
+            </div>
+            <div class="current-show">
+                <span class="gibberish-text">██▓░ ▓▓░█</span>
+                <span>8:15PM</span>
+            </div>
+            <div class="current-show">
+                <span class="gibberish-text">░██▓ █░▓█</span>
+                <span>9:00PM</span>
+            </div>
+            <div class="current-show">
+                <span class="gibberish-text">▓░██ ░▓▓█</span>
+                <span>9:45PM</span>
+            </div>
+        </div>
+        
+        <!-- Venue rules -->
+        <div class="venue-rules">
+            <h3>HOUSE RULES</h3>
+            <ul>
+                <li>18+ ONLY - MUST SHOW ID</li>
+                <li>MESSAGE @CROSSROADS.DENTON ON INSTAGRAM FOR ADDRESS</li>
+                <li>SOMEONE FROM ONE OF THE BANDS MUST BE FOLLOWING YOU TO GET IN</li>
+                <li>NO COVER CHARGE</li>
+                <li>RESPECT THE SPACE</li>
+            </ul>
+        </div>
+        
+        <!-- Past shows section -->
+        <div class="past-shows">
+            <h3>ARCHIVE</h3>
+            <div id="past-shows-container"></div>
         </div>
     </div>
+</div>
 
-    <!-- Portal Content Container -->
-    <div class="portal-content" id="portal">
-        <button class="portal-close" onclick="closePortal()">×</button>
-        <div id="portal-text">
-            <h2 style="color: #ff0000; font-size: 36px; margin-bottom: 20px;">*</h2>
-            <p style="font-size: 18px; line-height: 1.8;">
-                * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-            </p>
-        </div>
-    </div>
+<!-- System messages -->
+<div class="system-message" id="warning">
+    DEGRADATION IMMINENT
+</div>
 
-    <script>
-        // Matrix Rain Effect
-        const canvas = document.getElementById('matrix-bg');
-        const ctx = canvas.getContext('2d');
-        
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
-        const matrixArray = matrix.split("");
-        
-        const fontSize = 10;
-        const columns = canvas.width/fontSize;
-        
-        const drops = [];
-        for(let x = 0; x < columns; x++) {
-            drops[x] = 1;
-        }
-        
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = '#300';
-            ctx.font = fontSize + 'px monospace';
-            
-            for(let i = 0; i < drops.length; i++) {
-                const text = matrixArray[Math.floor(Math.random()*matrixArray.length)];
-                ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-                
-                if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-        
-        setInterval(drawMatrix, 35);
+<script>
+// The site actively resists being used
+let degradationLevel = 0;
+let clickCount = 0;
 
-        // Custom Cursor
-        const cursor = document.getElementById('cursor');
-        let mouseX = 0, mouseY = 0;
+// Each interaction degrades the experience
+document.addEventListener('click', () => {
+    clickCount++;
+    if (clickCount % 5 === 0 && degradationLevel < 5) {
+        degradationLevel++;
+        document.body.className = `degraded-${degradationLevel}`;
         
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            cursor.style.left = mouseX - 20 + 'px';
-            cursor.style.top = mouseY - 20 + 'px';
-            
-            // Create particle trail
-            createParticle(mouseX, mouseY);
-        });
-
-        // Particle System
-        function createParticle(x, y) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            document.body.appendChild(particle);
-            
-            particle.style.left = x + 'px';
-            particle.style.top = y + 'px';
-            
-            const angle = Math.random() * Math.PI * 2;
-            const velocity = Math.random() * 50 + 20;
-            const lifetime = Math.random() * 1000 + 500;
-            
-            particle.animate([
-                { 
-                    transform: 'translate(0, 0) scale(1)',
-                    opacity: 1
-                },
-                { 
-                    transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`,
-                    opacity: 0
-                }
-            ], {
-                duration: lifetime,
-                easing: 'ease-out'
-            }).onfinish = () => particle.remove();
-        }
-
-        // Create Quantum Nodes
-        const sphere = document.getElementById('sphere');
-        const nodeCount = 7;
-        const nodes = [];
-        
-        for(let i = 0; i < nodeCount; i++) {
-            const node = document.createElement('div');
-            node.className = 'quantum-node';
-            node.innerHTML = `<div class="node-core">*</div>`;
-            
-            // Position nodes in 3D space
-            const phi = Math.acos(-1 + (2 * i) / nodeCount);
-            const theta = Math.sqrt(nodeCount * Math.PI) * phi;
-            
-            const x = 250 * Math.cos(theta) * Math.sin(phi);
-            const y = 250 * Math.sin(theta) * Math.sin(phi);
-            const z = 250 * Math.cos(phi);
-            
-            node.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
-            
-            node.addEventListener('click', () => {
-                openPortal(i);
-                explodeParticles(node);
-            });
-            
-            sphere.appendChild(node);
-            nodes.push({element: node, x, y, z});
-        }
-
-        // Create Neural Connections
-        function createNeuralConnections() {
-            for(let i = 0; i < nodes.length; i++) {
-                for(let j = i + 1; j < nodes.length; j++) {
-                    if(Math.random() > 0.5) {
-                        const connection = document.createElement('div');
-                        connection.className = 'neural-connection';
-                        
-                        const dx = nodes[j].x - nodes[i].x;
-                        const dy = nodes[j].y - nodes[i].y;
-                        const dz = nodes[j].z - nodes[i].z;
-                        const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                        const angle = Math.atan2(dy, dx);
-                        
-                        connection.style.width = distance + 'px';
-                        connection.style.transform = `translate3d(${nodes[i].x}px, ${nodes[i].y}px, ${nodes[i].z}px) rotate(${angle}rad)`;
-                        connection.style.animationDelay = Math.random() * 2 + 's';
-                        
-                        sphere.appendChild(connection);
-                    }
-                }
-            }
-        }
-        
-        createNeuralConnections();
-
-        // Portal Functions
-        function openPortal(index) {
-            const portal = document.getElementById('portal');
-            portal.classList.add('active');
-            document.body.classList.add('glitch');
-            
+        if (degradationLevel === 3) {
+            document.getElementById('warning').style.display = 'block';
             setTimeout(() => {
-                document.body.classList.remove('glitch');
-            }, 300);
+                document.getElementById('warning').style.display = 'none';
+            }, 2000);
         }
-        
-        function closePortal() {
-            const portal = document.getElementById('portal');
-            portal.classList.remove('active');
-        }
+    }
+});
 
-        // Particle Explosion
-        function explodeParticles(node) {
-            const rect = node.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            for(let i = 0; i < 30; i++) {
-                setTimeout(() => {
-                    createParticle(centerX, centerY);
-                }, i * 10);
+// Photocopier canvas effects - more subtle texture
+const canvas = document.getElementById('flyer-generator');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Generate xerox artifacts
+function generateArtifacts() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Subtle noise texture across entire canvas
+    for (let x = 0; x < canvas.width; x += 4) {
+        for (let y = 0; y < canvas.height; y += 4) {
+            if (Math.random() > 0.98) {
+                ctx.fillStyle = `rgba(244,241,232,${Math.random() * 0.1})`;
+                ctx.fillRect(x, y, 2, 2);
             }
         }
+    }
+    
+    // Edge darkening vignette
+    const gradient = ctx.createRadialGradient(
+        canvas.width/2, canvas.height/2, canvas.width/3,
+        canvas.width/2, canvas.height/2, canvas.width
+    );
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
 
-        // Interactive Sphere Rotation
-        let isDragging = false;
-        let previousMouseX = 0;
-        let previousMouseY = 0;
-        let rotationX = 0;
-        let rotationY = 0;
+generateArtifacts();
 
-        sphere.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            previousMouseX = e.clientX;
-            previousMouseY = e.clientY;
-            sphere.style.animation = 'none';
-        });
+// Gibberish text generator
+function generateGibberish() {
+    const chars = '░▓█▒▀▄■□▪▫';
+    let result = '';
+    const length = 3 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < length; i++) {
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result + ' ' + chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
+}
 
-        document.addEventListener('mousemove', (e) => {
-            if(isDragging) {
-                const deltaX = e.clientX - previousMouseX;
-                const deltaY = e.clientY - previousMouseY;
-                
-                rotationY += deltaX * 0.5;
-                rotationX -= deltaY * 0.5;
-                
-                sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-                
-                previousMouseX = e.clientX;
-                previousMouseY = e.clientY;
-            }
-        });
+// Generate past shows with sticky notes
+const pastShowsContainer = document.getElementById('past-shows-container');
+const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
+for (let i = 0; i < 8; i++) {
+    const stickyNote = document.createElement('div');
+    stickyNote.className = 'sticky-note';
+    stickyNote.style.transform = `rotate(${-3 + Math.random() * 6}deg)`;
+    
+    // Add random stains
+    if (Math.random() > 0.7) {
+        const stain = document.createElement('div');
+        stain.className = 'stain';
+        stain.style.top = `${Math.random() * 50}%`;
+        stain.style.left = `${Math.random() * 50}%`;
+        stickyNote.appendChild(stain);
+    }
+    
+    const month = months[Math.floor(Math.random() * months.length)];
+    const day = Math.floor(Math.random() * 28 + 1).toString().padStart(2, '0');
+    
+    stickyNote.innerHTML += `
+        <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.2em;">${month}/${day}</div>
+        <div style="margin-bottom: 5px;">${generateGibberish()}</div>
+        <div style="margin-bottom: 5px;">${generateGibberish()}</div>
+        <div style="margin-bottom: 5px;">${generateGibberish()}</div>
+        <div style="margin-top: 15px; font-size: 1.1em; color: #8b4513;"><strong>EXPIRED</strong></div>
+    `;
+    
+    pastShowsContainer.appendChild(stickyNote);
+}
 
-        // Remove loading screen
-        setTimeout(() => {
-            document.getElementById('loading').style.display = 'none';
-        }, 2000);
+// The site remembers how degraded it got
+if (localStorage.getItem('degradation')) {
+    degradationLevel = parseInt(localStorage.getItem('degradation'));
+    document.body.className = `degraded-${degradationLevel}`;
+}
 
-        // Window resize handler
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-    </script>
+window.addEventListener('beforeunload', () => {
+    localStorage.setItem('degradation', degradationLevel);
+});
+
+// Anti-smooth scrolling
+let scrollTimeout;
+window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    document.body.style.transform = `translateX(${Math.random() * 4 - 2}px)`;
+    scrollTimeout = setTimeout(() => {
+        document.body.style.transform = 'translateX(0)';
+    }, 50);
+});
+
+// Window resize regenerates artifacts
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    generateArtifacts();
+});
+</script>
+
 </body>
 </html>
