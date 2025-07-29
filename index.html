@@ -1,159 +1,471 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>[CROSS/ROADS] – perpetual flyer wall</title>
-<style>
-/* -------------------------------- Base reset */
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#0e0d0b;color:#f4f1e8;font-family:monospace;cursor:crosshair;overflow-x:hidden}
-
-/* ---------- Global CSS custom props controlling decay */
-:root{
- --decay:0;
- --blur:0px; --sat:1; --invert:0; --skew:0deg; --scan:0px
-}
-body{
- filter:blur(var(--blur)) saturate(var(--sat)) invert(var(--invert)) hue-rotate(var(--skew));
-}
-
-/* -------------------------------- Layers */
-#xeroxShader,#opticSpiral{position:fixed;inset:0;pointer-events:none;z-index:0}
-#opticSpiral{
- background:repeating-conic-gradient(#000 0deg 2deg,#111 2deg 4deg,#0e0d0b 4deg 8deg);
- animation:spin 40s linear infinite;opacity:.05
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-#content{position:relative;z-index:1;padding:8vmin 4vmin;min-height:200vh}
-
-/* ---------- Graffiti burst hero */
-#vitaminBurst{position:relative;height:55vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#vitaminBurst h1{font-size:clamp(2.5rem,8vw,9rem);text-transform:uppercase;mix-blend-mode:exclusion}
-.burstRay{
- position:absolute;top:50%;left:50%;width:120vmax;height:4vmax;
- background:linear-gradient(90deg,transparent,rgba(255,90,0,.9) 30%,transparent 70%);
- transform-origin:0 50%;
- mix-blend-mode:screen;
-}
-
-/* ---------- Dynamic scraps */
-.scrap{
- position:absolute;padding:1.2rem 1.4rem;font-size:1.1rem;line-height:1.25;
- background:#fdfbf6;border:1px solid rgba(0,0,0,.3);
- filter:grayscale(.2) contrast(.9) brightness(.95);
- box-shadow:0 8px 16px rgba(0,0,0,.6),inset 0 0 8px rgba(0,0,0,.4);
- mask:var(--mask);
- transform:rotate(var(--rot)) translateZ(0);pointer-events:none;
- user-select:none;
-}
-.scrap:after{/* masking‑tape */content:'';position:absolute;top:-14px;left:50%;width:68px;height:22px;background:rgba(255,255,220,.65);box-shadow:0 2px 4px rgba(0,0,0,.4);transform:translateX(-50%) rotate(var(--trot))}
-@property --scan{syntax:"<length>";initial-value:0;inherits:false}
-@keyframes scanShift{to{transform:translateX(var(--scan))}}
-/* -------------------------------- Decay stages computed in JS */
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seal Creek™ Elixirs - Outdoor Aromatic Body Spray</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg-primary:#d4c4a8;
+            --bg-secondary:#e8dcc8;
+            --text-primary:#2c2c2c;
+            --accent-green:#274e13;
+            --border-color:#3a3a3a;
+            --shadow:rgba(0,0,0,.1);
+            --preferred-green:#4a9456
+        }
+        body{
+            font-family:'Georgia',serif;
+            background-color:var(--bg-primary);
+            color:var(--text-primary);
+            line-height:1.6;
+            min-height:100vh
+        }
+        .container{max-width:800px;margin:0 auto;padding:20px}
+        header{
+            text-align:center;
+            padding:40px 20px;
+            background-color:var(--bg-secondary);
+            border:3px solid var(--border-color);
+            border-radius:8px;
+            margin-bottom:20px;
+            display:flex;
+            flex-direction:column;
+            align-items:center
+        }
+        .header-content{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            width:100%;
+            max-width:600px;
+            margin-bottom:10px;
+            gap:20px
+        }
+        .logo{width:240px;height:240px;flex-shrink:0}
+        .brand-text{text-align:left}
+        .shake-badge{
+            width:80px;height:80px;
+            background-color:var(--accent-green);
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:bold;
+            font-size:14px;
+            text-align:center;
+            color:#fff;
+            flex-shrink:0
+        }
+        h1{font-size:2.5em;font-weight:400;margin-bottom:5px;letter-spacing:-1px}
+        h2{font-size:1.4em;font-weight:400}
+        h3{font-size:1.5em;font-weight:400;margin-bottom:15px}
+        h4{font-size:1.2em;font-weight:400}
+        .subtitle{font-style:italic;font-size:1.2em;margin-bottom:10px}
+        .volume{font-size:1.1em;text-align:center}
+        .mission,.ingredient-box{
+            background-color:var(--bg-secondary);
+            padding:25px;border-radius:8px;margin-bottom:20px;
+            text-align:center;font-style:italic;
+            border:2px solid var(--border-color)
+        }
+        .ingredient-box{text-align:left;font-style:normal}
+        .product-overview{
+            background:#fff;padding:30px;border:2px solid var(--border-color);
+            border-radius:8px;margin-bottom:20px
+        }
+        .product-overview h2{font-size:1.6em;margin-bottom:15px;color:var(--accent-green)}
+        .accordion{margin-bottom:15px}
+        .accordion-header{
+            background:var(--bg-secondary);padding:20px;
+            border:2px solid var(--border-color);border-radius:8px;
+            cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+            transition:.3s
+        }
+        .accordion-header:hover{background:#ddd0b8}
+        .accordion-icon{font-size:1.5em;transition:transform .3s}
+        .accordion-content{
+            display:none;padding:25px;background:#fff;
+            border:2px solid var(--border-color);border-top:none;
+            border-radius:0 0 8px 8px;margin-top:-2px
+        }
+        .accordion.active .accordion-icon{transform:rotate(180deg)}
+        .accordion.active .accordion-content{display:block}
+        .payment-options{
+            display:flex;justify-content:space-around;gap:30px;text-align:center;
+            margin:30px 0;flex-wrap:wrap
+        }
+        .payment-method{flex:1;max-width:200px;padding:15px}
+        .payment-method.preferred{
+            border:3px solid var(--preferred-green);border-radius:12px;background:#f9fff9;
+            max-width:280px;padding-bottom:30px;display:flex;flex-direction:column;align-items:center;gap:10px
+        }
+        .qr-code{width:200px;height:200px}
+        .qr-code-small{width:140px;height:140px}
+        .qr-code,.qr-code-small{
+            border:2px solid var(--border-color);border-radius:8px;margin:0 auto;display:block
+        }
+        .preferred-label{
+            background:var(--preferred-green);color:#fff;padding:5px 10px;border-radius:4px;
+            font-size:.9em;margin-bottom:10px;display:inline-block
+        }
+        .payment-note{font-size:.9em;color:#666;margin-top:10px;font-style:italic}
+        .zelle-tip{font-size:.7em;color:#888;margin-top:5px}
+        .payment-header{text-align:center;margin-bottom:25px;font-size:1.2em;font-weight:bold}
+        .warning-box{
+            background:#f8f4e8;border:2px solid #8b6914;padding:20px;margin:20px 0;border-radius:8px
+        }
+        .hazard-icon{
+            display:inline-block;width:24px;height:24px;background:#ff9800;color:#000;
+            text-align:center;line-height:24px;font-weight:bold;font-size:18px;transform:rotate(45deg);
+            margin-right:8px;position:relative
+        }
+        .hazard-icon::before{content:"!";display:inline-block;transform:rotate(-45deg)}
+        .oil-info{
+            background:#f5f0e8;border-left:4px solid var(--accent-green);
+            padding:15px;margin:20px 0
+        }
+        .oil-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+        .toggle-wrapper{display:flex;flex-direction:column;align-items:center}
+        .image-toggle{
+            background:var(--accent-green);color:#fff;border:none;border-radius:50%;
+            width:40px;height:40px;font-size:18px;cursor:pointer;display:flex;
+            align-items:center;justify-content:center;transition:.3s
+        }
+        .image-toggle:hover{background:#1a3409;transform:scale(1.1)}
+        .toggle-label{font-size:10px;margin-top:2px;color:var(--accent-green)}
+        .image-panel{max-height:0;overflow:hidden;transition:max-height .4s;margin-bottom:15px}
+        .image-panel.active{max-height:300px}
+        .plant-image{
+            width:240px;height:240px;border-radius:8px;border:2px solid var(--border-color);
+            object-fit:cover;display:block;margin:15px auto 0
+        }
+        .footer{text-align:center;padding:40px 20px;margin-top:50px;border-top:2px solid var(--border-color)}
+        .contact-info{
+            margin-top:20px;display:flex;justify-content:center;gap:40px;flex-wrap:wrap
+        }
+        .contact-info a{
+            font-size:1.1em;font-weight:bold;color:var(--accent-green);background:var(--bg-secondary);
+            padding:10px 20px;border-radius:8px;border:1px solid var(--accent-green);
+            text-decoration:none
+        }
+        .contact-info a:hover{background:#c9b89a}
+        .about-section{display:flex;align-items:flex-start;gap:20px}
+        .about-image{
+            width:280px;height:280px;flex-shrink:0;border-radius:8px;border:2px solid var(--border-color);
+            object-fit:cover
+        }
+        .about-text{flex:1;font-style:italic;font-size:1.1em;line-height:1.8;padding-top:10px}
+        .product-display{
+            display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:10px
+        }
+        .product-display img{
+            width:200px;height:auto;border:2px solid var(--border-color);border-radius:8px
+        }
+        .cosmetic-notice{text-align:center;font-style:italic;color:#666;margin:20px 0;font-size:.9em}
+        /* New styles for online buy buttons to make them a list */
+        .online-buy-buttons > div {
+            flex: none !important; /* Override flex properties */
+            min-width: unset !important; /* Override min-width */
+            width: 100%; /* Make them take full width to stack */
+            margin-bottom: 15px; /* Add some space between buttons */
+            text-align: center; /* Center the content within each div */
+        }
+        .online-buy-buttons {
+            display: block !important; /* Change parent to block to allow stacking */
+            gap: 0 !important; /* Remove gap */
+        }
+        /* End new styles */
+        @media(max-width:600px){
+            .header-content{flex-direction:column;align-items:center}
+            .logo{width:180px;height:180px}
+            .brand-text{text-align:center}
+            h1{font-size:1.8em}
+            h2{font-size:1.2em}
+            .shake-badge{width:60px;height:60px;font-size:11px}
+            .container{padding:15px}
+            .contact-info{flex-direction:column;gap:10px}
+            .payment-options{flex-direction:column;align-items:center}
+            .payment-method{max-width:250px}
+            .qr-code{width:220px;height:220px}
+            .qr-code-small{width:160px;height:160px}
+            .plant-image{width:200px;height:200px}
+            .oil-header{flex-direction:column;align-items:flex-start;gap:10px}
+            .image-toggle{align-self:flex-end}
+            .about-section{flex-direction:column;align-items:center}
+            .about-image{width:240px;height:240px;margin-bottom:20px}
+            .about-text{text-align:center;padding-top:0}
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="images/seal-creek-logo.png" alt="Seal Creek Logo" class="logo">
+                <div class="brand-text">
+                    <h1>Seal Creek™ Elixirs</h1>
+                    <p class="subtitle">Outdoor Aromatic Body Spray</p>
+                </div>
+                <div class="shake-badge">SHAKE<br>WELL</div>
+            </div>
+            <p class="volume">2 fl oz / 60 mL</p>
+        </header>
 
-<canvas id="xeroxShader"></canvas>
-<div id="opticSpiral"></div>
+        <div class="mission">
+            <p><strong>Mission Statement:</strong> Crafting beautifully scented products that people love for a more enjoyable and human outdoor experience.</p>
+        </div>
 
-<div id="content">
-  <section id="vitaminBurst"><h1>Vitamin D / Crossroads</h1></section>
-  <!-- collage container -->
-  <section id="wall" style="position:relative;height:140vh"></section>
-</div>
+        <p class="cosmetic-notice">*For cosmetic use only. Not intended as insect repellent.*</p>
 
-<script>
-// ---------- click‑driven decay
-let clicks=0;
-addEventListener('click',()=>{
-  clicks++;const r=document.documentElement;
-  if(clicks%4===0){
-    r.style.setProperty('--decay',clicks/4);
-    r.style.setProperty('--blur',`${Math.min(clicks,10)}px`);
-    r.style.setProperty('--sat',`${Math.max(.4,1-clicks*0.05)}`);
-    r.style.setProperty('--invert',clicks>12?.8:clicks>8?.4:0);
-    r.style.setProperty('--skew',`${Math.min(clicks*3,30)}deg`);
-  }
-});
+        <div class="product-overview">
+            <h2>Product Overview</h2>
+            <p>Seal Creek™ Elixirs is a cosmetic fragrance designed to leave clothing and skin pleasantly scented during outdoor adventures. This small‑batch, nature‑inspired formula combines the calming essence of lavender with invigorating mint notes and fresh citric‑camphor undertones.</p>
+            <p><strong>Key Features:</strong></p>
+            <ul>
+                <li>Eco‑minded packaging with recyclable components</li>
+                <li>No synthetic fragrances, parabens, or phthalates</li>
+                <li>Hand‑crafted in Denton, Texas</li>
+                <li>12+‑month shelf life when stored properly</li>
+                <li>Fine‑mist sprayer for even application</li>
+            </ul>
+        </div>
 
-// ---------- graffiti burst rays
-const burst=document.getElementById('vitaminBurst');
-for(let i=0;i<32;i++){
-  const e=document.createElement('div');
-  e.className='burstRay';
-  e.style.transform=`translate(-50%,-50%) rotate(${Math.random()*360}deg) scaleX(${.4+Math.random()*1.2})`;
-  e.style.opacity=0.45+Math.random()*0.35;
-  burst.appendChild(e);
-}
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>Payment Options</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <p class="payment-header">$10 per bottle – quick & easy</p>
+                <div class="payment-options">
+                    <div class="payment-method">
+                        <h3>Venmo</h3>
+                        <img src="images/seal-creek-zelle-qr.png" alt="Venmo QR Code" class="qr-code-small">
+                    </div>
+                    <div class="payment-method preferred">
+                        <span class="preferred-label">Preferred</span>
+                        <h3>Stripe</h3>
+                        <img src="images/seal-creek-stripe-qr.png" alt="Stripe QR Code" class="qr-code">
+                        <p class="payment-note">Instant & secure</p>
+                    </div>
+                    <div class="payment-method">
+                        <h3>Zelle</h3>
+                        <img src="images/seal-creek-venmo-qr.png" alt="Zelle QR Code" class="qr-code-small">
+                        <p class="zelle-tip">Scan via your banking app</p>
+                    </div>
+                </div>
+                <div class="online-buy-buttons" style="display:block; margin-top:20px;">
+                    <div style="margin-bottom:15px; text-align:center;">
+                        <p>Buy 1 unit:</p>
+                        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+                        <stripe-buy-button buy-button-id="buy_btn_1Rpz6v1Xz1RJ20NomN2oxJXv" publishable-key="pk_live_51Rpb0l1Xz1RJ20NoMDHfwcqLfJFhdHrVAfSuMWBIx8JPaEyyBZiz6GFsVpyWflACHDtL2Bd2pufksEg90LB7g20L00xiv7TIU5"></stripe-buy-button>
+                    </div>
+                    <div style="margin-bottom:15px; text-align:center;">
+                        <p>Buy 5 units:</p>
+                        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+                        <stripe-buy-button buy-button-id="buy_btn_1Rpz771Xz1RJ20NoeF9BxLmT" publishable-key="pk_live_51Rpb0l1Xz1RJ20NoMDHfwcqLfJFhdHrVAfSuMWBIx8JPaEyyBZiz6GFsVpyWflACHDtL2Bd2pufksEg90LB7g20L00xiv7TIU5"></stripe-buy-button>
+                    </div>
+                    <div style="margin-bottom:15px; text-align:center;">
+                        <p>Buy 10 units:</p>
+                        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+                        <stripe-buy-button buy-button-id="buy_btn_1Rpz7O1Xz1RJ20No9F5fY49P" publishable-key="pk_live_51Rpb0l1Xz1RJ20NoMDHfwcqLfJFhdHrVAfSuMWBIx8JPaEyyBZiz6GFsVpyWflACHDtL2Bd2pufksEg90LB7g20L00xiv7TIU5"></stripe-buy-button>
+                    </div>
+                    <div style="margin-bottom:0; text-align:center;">
+                        <p>Buy 30 units:</p>
+                        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+                        <stripe-buy-button buy-button-id="buy_btn_1Rpz7R1Xz1RJ20NoBaJb7IZD" publishable-key="pk_live_51Rpb0l1Xz1RJ20NoMDHfwcqLfJFhdHrVAfSuMWBIx8JPaEyyBZiz6GFsVpyWflACHDtL2Bd2pufksEg90LB7g20L00xiv7TIU5"></stripe-buy-button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-// ---------- procedural scrap generator
-const wall=document.getElementById('wall');
-const lorem=['▓▓█░ ░▓██','██▓░ ▓▓░█','░██▓ █░▓█','▓░██ ░▓▓█',
-             'ENTROPIC PARAPRAXIS','NERE JACK','42 SCRATCH ACID','MOON WORSHIP'];
-const masks=['url("data:image/svg+xml;utf8,\
-<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'120\'><path d=\'M0 20 L15 0 H185 L200 20 V100 L185 120 H15 L0 100 Z\' fill=\'white\'/></svg>")',
-             'url("data:image/svg+xml;utf8,\
-<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'120\'><path d=\'M0 0 H200 V90 L180 120 H20 L0 90 Z\' fill=\'white\'/></svg>")'];
-for(let i=0;i<20;i++){
-   const s=document.createElement('div');
-   s.className='scrap';
-   s.style.setProperty('--rot',`${-8+Math.random()*16}deg`);
-   s.style.setProperty('--trot',`${-6+Math.random()*12}deg`);
-   s.style.setProperty('--mask',masks[Math.floor(Math.random()*masks.length)]);
-   s.style.left=`${Math.random()*90}%`;
-   s.style.top=`${Math.random()*90}%`;
-   s.innerHTML=`<strong>${lorem[Math.floor(Math.random()*lorem.length)]}</strong><br>${(1+Math.floor(Math.random()*12)).toString().padStart(2,'0')}/${(1+Math.floor(Math.random()*28)).toString().padStart(2,'0')} · 8:00PM`;
-   wall.appendChild(s);
-}
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>Product Display</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="product-display">
+                    <img src="images/seal-creek-elixir-2oz-bottle-pic.png" alt="Seal Creek™ 2 oz Bottle">
+                </div>
+            </div>
+        </div>
 
-// ---------- xerox WebGL shader (halftone + scan jitter) – minimal lib‑less
-const gl=(()=>{
- const c=document.getElementById('xeroxShader');
- c.width=innerWidth;c.height=innerHeight;
- addEventListener('resize',()=>{c.width=innerWidth;c.height=innerHeight});
- return c.getContext('webgl');
-})();
-const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`,
-fs=`
-precision highp float;
-uniform vec2 res;uniform float t;uniform float d;
-float rand(vec2 co){return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453);}
-void main(){
- vec2 uv=gl_FragCoord.xy/res;
- /* scanline wobble */
- uv.y+=sin(uv.x*80.0+t*4.0)*0.002*d;
- /* halftone dots */
- vec2 grid=uv*vec2(400.0,400.0);
- vec2 gv=fract(grid)-0.5;
- float mask=step(length(gv),0.3);
- float noise=rand(gl_FragCoord.xy+t)*0.15;
- vec3 col=mix(vec3(0.0),vec3(1.0),mask-noise);
- gl_FragColor=vec4(col,0.12);
-}`;
-function compile(src,type){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}
-const prog=gl.createProgram();
-gl.attachShader(prog,compile(vs,gl.VERTEX_SHADER));
-gl.attachShader(prog,compile(fs,gl.FRAGMENT_SHADER));
-gl.linkProgram(prog);gl.useProgram(prog);
-const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);
-gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-const resLoc=gl.getUniformLocation(prog,'res'),
-      tLoc=gl.getUniformLocation(prog,'t'),
-      dLoc=gl.getUniformLocation(prog,'d');
-let time=0;
-function draw(){
-  time+=.016;
-  gl.uniform2f(resLoc,innerWidth,innerHeight);
-  gl.uniform1f(tLoc,time);
-  gl.uniform1f(dLoc,parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--decay')));
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-  requestAnimationFrame(draw);
-}draw();
-</script>
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>Ingredients (INCI)</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="ingredient-box">
+                    <p><strong>Full INCI List:</strong></p>
+                    <p>Aqua (Water), Alcohol Denat., Lavandula angustifolia (Lavender) Oil, Mentha piperita (Peppermint) Oil, Corymbia citriodora Oil, Soap, Glycerin, Citrus Aurantium Bergamia (Bergamot) Fruit Oil, Juniperus Virginiana (Cedarwood) Oil, Fragrance (Parfum), Olea Europaea (Olive) Fruit Oil, Aloe Barbadensis Leaf Juice, Citric Acid, Sodium Chloride, Potassium Sorbate, Sodium Benzoate.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>Essential Oil Information</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+
+                <div class="oil-info">
+                    <div class="oil-header">
+                        <h3>Lavender (Lavandula angustifolia)</h3>
+                        <div class="toggle-wrapper">
+                            <button class="image-toggle" onclick="togglePlantImage(this)">▶</button>
+                            <span class="toggle-label">image</span>
+                        </div>
+                    </div>
+                    <div class="image-panel">
+                        <img src="images/lavender-plant.png" alt="Lavender Plant" class="plant-image">
+                    </div>
+                    <p>The cornerstone of this blend, lavender has been treasured for millennia. Ancient Romans used it in their baths (the name comes from Latin <em>lavare</em> – to wash), while medieval Europeans scattered it on floors to freshen rooms.</p>
+                    <p><strong>Interesting Facts:</strong></p>
+                    <ul>
+                        <li>Queen Victoria demanded fresh lavender in all royal residences</li>
+                        <li>During WWI, lavender oil was used in field hospitals</li>
+                        <li>≈100 lb of flowers yield 1 lb of oil</li>
+                        <li>Finest lavender grows at 600–1 400 m elevation</li>
+                    </ul>
+                </div>
+
+                <div class="oil-info">
+                    <div class="oil-header">
+                        <h3>Peppermint (Mentha piperita)</h3>
+                        <div class="toggle-wrapper">
+                            <button class="image-toggle" onclick="togglePlantImage(this)">▶</button>
+                            <span class="toggle-label">image</span>
+                        </div>
+                    </div>
+                    <div class="image-panel">
+                        <img src="images/peppermint-plant.png" alt="Peppermint Plant" class="plant-image">
+                    </div>
+                    <p>Peppermint's crisp, cooling aroma has delighted humanity for &gt;4 000 years. Greeks mythologized the nymph Minthe, Romans used mint wreaths during feasts, and Egyptian medical papyri list mint varieties.</p>
+                    <p><strong>Interesting Facts:</strong></p>
+                    <ul>
+                        <li>Natural hybrid of spearmint + water mint</li>
+                        <li>Ancient Chinese herbalists prized its cooling nature</li>
+                        <li>≈250 lb of leaves yield 1 lb of oil</li>
+                        <li>Top US producers: MI, IN, OR</li>
+                        <li>Wild peppermint spreads via runners, not seed</li>
+                    </ul>
+                </div>
+
+                <div class="oil-info">
+                    <div class="oil-header">
+                        <h3>Lemon Eucalyptus (Corymbia citriodora)</h3>
+                        <div class="toggle-wrapper">
+                            <button class="image-toggle" onclick="togglePlantImage(this)">▶</button>
+                            <span class="toggle-label">image</span>
+                        </div>
+                    </div>
+                    <div class="image-panel">
+                        <img src="images/eucalyptus-plant.png" alt="Lemon Eucalyptus Plant" class="plant-image">
+                    </div>
+                    <p>This Australian native owes its citrusy scent to high citronellal. Despite the name, it's unrelated to lemon trees.</p>
+                    <p><strong>Interesting Facts:</strong></p>
+                    <ul>
+                        <li>Can reach 50 m tall in situ</li>
+                        <li>Oil steam‑distilled from leaves & twigs</li>
+                        <li>≈300 lb of leaves yield 1 lb of oil</li>
+                        <li>Brazil is a major grower outside Australia</li>
+                        <li>Bark sheds annually, revealing fresh patterns</li>
+                        <li>Leaf chemistry shifts with plant age</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>Directions for Use</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <ol>
+                    <li><strong>Shake vigorously</strong> until mixture appears uniformly opaque</li>
+                    <li><strong>Spray 2–4 pumps</strong> on exposed skin or clothing</li>
+                    <li><strong>Spread evenly</strong> with hands for maximum coverage</li>
+                    <li><strong>Best performance</strong> on natural fibers</li>
+                    <li><strong>Non‑staining formula</strong></li>
+                    <li><strong>Reapply as desired</strong>
+                        <ul><li>Every 15‑45 min for sustained outdoor humanizing</li></ul>
+                    </li>
+                </ol>
+                <p><strong>Pro Tips:</strong></p>
+                <ul>
+                    <li>Spray on bandanas or cuffs for portable aromatherapy</li>
+                    <li>Ideal for hiking, camping, gardening, outdoor dining</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>About the Owner</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="about-section">
+                    <img src="images/Seal_Creek_ab_me_pic_opt1.png" alt="Owner portrait" class="about-image">
+                    <p class="about-text">Seal Creek™ was born from evenings on Nana's porch, where lavender drifted through Texas dusk. Each batch is mixed by hand with lavender, lemon eucalyptus, and peppermint—no heavy additives—bottling porch calm for your pocket.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <h2>Safety & Warnings</h2><span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="warning-box">
+                    <p><strong><span class="hazard-icon"></span>Important Safety Information:</strong></p>
+                    <ul>
+                        <li><strong>Flammable</strong> – keep away from flames</li>
+                        <li><strong>External use only</strong></li>
+                        <li><strong>Avoid eyes</strong>; may cause irritation</li>
+                        <li><strong>May irritate</strong> sensitive/broken skin</li>
+                        <li>Patch test before first use</li>
+                        <li>Discontinue if irritation occurs</li>
+                        <li>Keep out of reach of children & pets</li>
+                        <li>Consult physician if pregnant/nursing</li>
+                        <li>Store below 30 °C / 86 °F</li>
+                    </ul>
+                </div>
+                <p><strong>Classification:</strong> cosmetic body mist; no therapeutic or pesticidal claims</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <h3>Seal Creek™ Elixirs</h3>
+            <p>Hand‑crafted in Denton, TX 76201</p>
+            <div class="contact-info">
+                <a href="tel:+18179482559">817‑948‑2559</a>
+                <a href="mailto:seal.creek.brand@gmail.com">seal.creek.brand@gmail.com</a>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        function toggleAccordion(h){
+            const a=h.parentElement;
+            document.querySelectorAll('.accordion').forEach(acc=>{
+                if(acc!==a)acc.classList.remove('active')
+            });
+            a.classList.toggle('active')
+        }
+        function togglePlantImage(btn){
+            const panel=btn.closest('.oil-info').querySelector('.image-panel');
+            const active=panel.classList.contains('active');
+            document.querySelectorAll('.image-panel').forEach(p=>p.classList.remove('active'));
+            document.querySelectorAll('.image-toggle').forEach(b=>b.textContent='▶');
+            if(!active){
+                panel.classList.add('active');
+                btn.textContent='▼'
+            }
+        }
+    </script>
 </body>
 </html>
