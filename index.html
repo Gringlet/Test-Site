@@ -653,7 +653,6 @@ body{
     text-shadow: 0 0 10px rgba(255,255,255,0.5); /* Slight glow for text */
 }
 
-/* Removed blink-text from here, we want it static */
 .transmission-terminated-container.active {
     opacity: 1;
     pointer-events: auto; /* Becomes interactive */
@@ -745,8 +744,9 @@ const breachGlow = document.getElementById('breach-glow');
 const warningMessage = document.getElementById('warning');
 const hackFrameContainer = document.getElementById('hack-frame-container');
 const hackFrameText = document.getElementById('hack-frame-text');
-const transmissionTerminatedContainer = document.getElementById('transmission-terminated-container'); // Re-added
+const transmissionTerminatedContainer = document.getElementById('transmission-terminated-container');
 const startupOverlay = document.getElementById('startup-overlay');
+const kaleidoscopeElement = document.querySelector('.kaleidoscope'); // Get reference to kaleidoscope
 
 // Phrases for the initial startup flashing sequence
 const startupPhrases = [
@@ -889,15 +889,18 @@ function createGlitchBars() {
             bar.className = 'glitch-bar';
             bar.style.top = Math.random() * 100 + '%';
             bar.style.background = `linear-gradient(90deg, rgba(255,255,255,0.8), rgba(0,0,0,0.8))`;
-            bar.style.animation = `glitch-bars ${0.5 + Math.random() * 0.5}s linear forwards`;
             document.body.appendChild(bar);
 
-            // Clean up after animation
-            setTimeout(() => {
+            // Using animationend to remove the bar more reliably after its specific animation finishes
+            bar.addEventListener('animationend', () => {
                 if (bar.parentNode) {
                     bar.parentNode.removeChild(bar);
                 }
-            }, 1000);
+            });
+
+            // Start animation (moved this line after appending to body to ensure it runs)
+            bar.style.animation = `glitch-bars ${0.5 + Math.random() * 0.5}s linear forwards`;
+
         }, Math.random() * 1500);
     }
 }
@@ -958,32 +961,34 @@ function startFrameSequence() {
 
             clearInterval(frameInterval);
 
-            // This is the end of the *hack* sequence, clean up
+            // This is the end of the *hack* sequence, clean up and transition to terminated state
             setTimeout(() => {
+                // Fade out hack elements
                 hackFrameContainer.style.opacity = '0';
                 if (finalGlowElement) {
                     finalGlowElement.style.opacity = '0'; // Fade out this final glow
                 }
-                
-                // Also, remove fire, static, and distortion overlays at the very end
-                fireOverlay.classList.remove('igniting'); // Stop fire animation
-                fireOverlay.style.opacity = '0'; // Ensure it's hidden
-                staticOverlay.classList.remove('active'); // Stop static animation
-                staticOverlay.style.opacity = '0'; // Ensure it's hidden
-                distortionOverlay.classList.remove('active'); // Stop distortion animation
-                distortionOverlay.style.opacity = '0'; // Ensure it's hidden
-                breachGlow.classList.remove('active'); // Stop breach glow animation
-                breachGlow.style.opacity = '0'; // Ensure it's hidden
+                fireOverlay.classList.remove('igniting');
+                fireOverlay.style.opacity = '0';
+                staticOverlay.classList.remove('active');
+                staticOverlay.style.opacity = '0';
+                distortionOverlay.classList.remove('active');
+                distortionOverlay.style.opacity = '0';
+                breachGlow.classList.remove('active');
+                breachGlow.style.opacity = '0';
 
-                // Hide all main content and overlays
+                // Ensure all main content and canvas are completely hidden and non-interactive
                 venueData.classList.remove('visible');
                 venueData.classList.remove('hacked-content');
-                // Hide canvas and kaleidoscope
+                venueData.style.display = 'none'; // Completely hide main content
                 canvas.style.opacity = '0';
-                document.querySelector('.kaleidoscope').style.opacity = '0';
+                canvas.style.pointerEvents = 'none';
+                kaleidoscopeElement.style.opacity = '0'; // Hide kaleidoscope
+                kaleidoscopeElement.style.pointerEvents = 'none';
+                warningMessage.style.display = 'none'; // Ensure warning is hidden
 
 
-                // Now, transition to the "Transmission Terminated" screen
+                // Now, display the "Transmission Terminated" screen
                 transmissionTerminatedContainer.classList.add('active');
                 document.body.style.backgroundColor = '#000'; // Ensure body is black
                 document.body.style.cursor = 'default';
@@ -997,7 +1002,7 @@ function startFrameSequence() {
                     }
                 }, 1000);
 
-            }, 5000); // Linger for 5 seconds on "Total Liberation" before transitioning to terminated screen
+            }, 5000); // Linger for 5 seconds on "Total Liberation" before transitioning
         } else {
             // Regular frames
             hackFrameText.textContent = frames[frameIndex];
@@ -1007,11 +1012,26 @@ function startFrameSequence() {
     }, 200); // Slightly slower for better readability
 }
 
-// Event listeners for timer reset (only when not hacking)
-// Only attach these if the page is not in a terminated state
-document.addEventListener('click', () => { if (!isTerminated) resetHackTimer(); });
-document.addEventListener('scroll', () => { if (!isTerminated) resetHackTimer(); });
-document.addEventListener('keydown', () => { if (!isTerminated) resetHackTimer(); });
+// Function to prevent pull-to-refresh
+function disablePullToRefresh() {
+    let touchstartY = 0;
+
+    document.addEventListener('touchstart', e => {
+        touchstartY = e.touches[0].clientY;
+    });
+
+    document.addEventListener('touchmove', e => {
+        const touchmoveY = e.touches[0].clientY;
+        // If scrolling up or not at the very top of the page, allow scroll
+        if (touchmoveY < touchstartY || window.scrollY > 0) {
+            return;
+        }
+        // If at the top and trying to pull down, prevent default
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+    }, { passive: false }); // passive: false is crucial for preventDefault() to work
+}
 
 // Canvas setup and effects
 const canvas = document.getElementById('flyer-generator');
@@ -1102,6 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sizeCanvas();
     generatePastShows();
     startStartupSequence();
+    disablePullToRefresh(); // Call this function on page load
 });
 
 </script>
