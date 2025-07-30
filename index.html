@@ -419,7 +419,7 @@ body{
     pointer-events:none;
 }
 
-/* Hand‑drawn text simulation */
+/* Hand-drawn text simulation */
 .hand-drawn{
     filter:url(#roughPaper);
     font-size:2.5em;
@@ -535,7 +535,7 @@ body{
 }
 
 /* ─────────────────────────────── */
-/* WORN‑FLYER OVERHAUL (OVERRIDES) */
+/* WORN-FLYER OVERHAUL (OVERRIDES) */
 /* ─────────────────────────────── */
 .sticky-note{
     background:linear-gradient(180deg,#fdfbf6 0%,#f1eedc 100%);
@@ -571,7 +571,7 @@ body{
     box-shadow:0 4px 6px rgba(0,0,0,.45);
 }
 
-/* Masking‑tape corners */
+/* Masking-tape corners */
 .tape{
     position:absolute;
     width:70px;
@@ -603,12 +603,12 @@ body{
 .hack-frame-container.active {
     pointer-events: auto;
     background: repeating-linear-gradient(
-            0deg,
-            rgba(255,255,255,0.05) 0px,
-            rgba(0,0,0,0.1) 1px,
-            rgba(255,255,255,0.05) 2px,
-            transparent 3px
-        );
+        0deg,
+        rgba(255,255,255,0.05) 0px,
+        rgba(0,0,0,0.1) 1px,
+        rgba(255,255,255,0.05) 2px,
+        transparent 3px
+    );
 }
 
 .hack-frame-text {
@@ -700,7 +700,7 @@ body{
         <h1 class="hand-drawn">[CROSS/ROADS]</h1>
 
         <div class="tonight-billboard">
-            <h2>UPCOMING SHOW: 12/14</h2>
+            <h2>UPCOMING SHOW: August 22/23</h2>
             <div class="current-show"><span class="gibberish-text">▓▓█░ ░▓██</span><span>7:30PM</span></div>
             <div class="current-show"><span class="gibberish-text">██▓░ ▓▓░█</span><span>8:15PM</span></div>
             <div class="current-show"><span class="gibberish-text">░██▓ █░▓█</span><span>9:00PM</span></div>
@@ -839,14 +839,14 @@ function startFlashingColors() {
 }
 
 function resetHackTimer() {
-    if (!isStartupComplete || isHacking || isTerminated) return; 
+    if (!isStartupComplete || isHacking || isTerminated) return;    
     
     clearTimeout(destructTimer);
     destructTimer = setTimeout(initiateSystemHack, HACK_DELAY_MS);
 }
 
 function initiateSystemHack() {
-    if (isHacking || isTerminated) return; 
+    if (isHacking || isTerminated) return;    
     isHacking = true;
     
     // Clear any existing timers
@@ -858,7 +858,7 @@ function initiateSystemHack() {
     // Show warning message with breach glow
     warningMessage.textContent = 'SYSTEM BREACH DETECTED';
     warningMessage.style.display = 'block';
-    breachGlow.classList.add('active'); 
+    breachGlow.classList.add('active');    
 
     // Fade out main content smoothly
     venueData.classList.remove('visible');
@@ -1080,12 +1080,21 @@ const genGib = () =>
         () => chars[Math.floor(Math.random() * chars.length)]
     ).join('') + ' ' + chars[Math.floor(Math.random() * chars.length)].repeat(4);
 
+// Event data from the prompt
+const eventData = [
+    { event: "The Great Collapse", date: "7/26", bands: ["Entropic Parapraxis", "The Radio Static", "Axiom", "Blinds"] },
+    { event: "The Longest Day", date: "6/21", bands: ["Plot", "Blinds", "Right Behind You"] },
+    { event: "Viva la Crossroads", date: "May 24th", bands: ["Entropic Parapraxis", "New Jack", "42 Scratch", "EZPZ"] },
+    { event: "Midnight Tokers", date: "April 19th", bands: ["Supernothing", "Right Behind You", "Junk Car Girls"] },
+    { event: "Transcendence Day", date: "March 22nd", bands: ["Kashmere Mammoths", "Immigration", "Right Behind You"] }
+];
+
 // Generate past shows
 function generatePastShows() {
-    const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
     const container = document.getElementById('past-shows-container');
-    
-    for(let i = 0; i < 8; i++) {
+    container.innerHTML = ''; // Clear existing content
+
+    eventData.forEach(event => {
         const note = document.createElement('div');
         note.className = 'sticky-note';
         note.style.setProperty('--rand', Math.random());
@@ -1099,25 +1108,23 @@ function generatePastShows() {
             note.appendChild(stain);
         }
         
-        const month = months[Math.floor(Math.random() * months.length)];
-        const day = String(Math.floor(Math.random() * 28 + 1)).padStart(2, '0');
-        
+        let bandListHtml = event.bands.map(band => `<div>${band}</div>`).join('');
+
         note.innerHTML += `
-            <div style="font-weight:bold;margin-bottom:10px;font-size:1.2em;">${month}/${day}</div>
-            <div style="margin-bottom:5px;">${genGib()}</div>
-            <div style="margin-bottom:5px;">${genGib()}</div>
-            <div style="margin-bottom:5px;">${genGib()}</div>
-            <div style="margin-top:15px;font-size:1.1em;color:#8b4513;"><strong>EXPIRED</strong></div>
+            <div style="font-weight:bold;margin-bottom:10px;font-size:1.2em;">${event.date}</div>
+            <div style="margin-bottom:5px;"><strong>${event.event}</strong></div>
+            ${bandListHtml}
+            <div style="margin-top:15px;font-size:1.1em;color:#8b4513;"><strong>ARCHIVED</strong></div>
         `;
         note.innerHTML += `<span class="tape tl"></span><span class="tape tr"></span>`;
         container.appendChild(note);
-    }
+    });
 }
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     sizeCanvas();
-    generatePastShows();
+    generatePastShows(); // Call the updated function
     startStartupSequence();
 });
 
