@@ -8,23 +8,22 @@
 /* Base reset - embrace browser defaults like xerox embraced machine limits */
 * {margin:0;padding:0;box-sizing:border-box;}
 
-/* --- Make page static and unscrollable --- */
+/* Keep overscroll-behavior to prevent accidental pull-to-refresh */
 html, body {
-    height: 100%; /* Ensure html and body take full viewport height */
-    overflow: hidden; /* Prevent all scrolling */
-    overscroll-behavior: none; /* Prevents pull-to-refresh on mobile */
+    height: 100%; /* Keep this for consistent layout */
+    overflow-x: hidden; /* Only prevent horizontal scroll */
+    overflow-y: auto; /* Allow vertical scroll */
+    overscroll-behavior: none; /* Prevents pull-to-refresh on mobile and general scroll bounce */
 }
-/* ------------------------------------ */
 
 body{
     background:#1a1815;
-    /* overflow-x:hidden; Removed as overflow:hidden on body/html covers this */
     font-family:monospace;
     cursor:crosshair;
     color:#f4f1e8;
     position:relative;
     transition: background-color 2s ease-out;
-    /* pointer-events: auto; default, will be set to none by JS */
+    pointer-events: auto; /* Ensure body is interactive by default */
 }
 
 /* ─────────────────────────────── */
@@ -328,18 +327,18 @@ body{
 .venue-data{
     position:relative;
     z-index:20;
-    min-height:100vh; /* Keep for content sizing, but overflow:hidden will prevent scroll */
+    min-height:100vh; /* Keep for content sizing */
     padding:20px;
     filter:contrast(var(--contrast)) blur(var(--bleed));
     transform:rotate(var(--drift));
     opacity: 0;
-    pointer-events: none;
+    pointer-events: none; /* Initially none, will be auto on visibility */
     transition: opacity 1s ease-out;
 }
 
 .venue-data.visible {
     opacity: 1;
-    /* pointer-events: auto; this will be overridden by body pointer-events: none */
+    pointer-events: auto; /* Allow interaction when visible */
 }
 
 /* Tonight's billboard */
@@ -785,18 +784,14 @@ function startStartupSequence() {
             
             // Reveal main content
             venueData.classList.add('visible');
+            // Ensure venue-data content is interactive now that it's visible
+            venueData.style.pointerEvents = 'auto';
             
             // Generate canvas artifacts after startup
             generateArtifacts();
-
-            // *** IMPORTANT: Disable further interaction and scrolling here ***
-            document.body.style.pointerEvents = 'none'; // Prevent all clicks/touches
-            document.body.removeEventListener('scroll', resetHackTimer); // Stop scroll from resetting timer
             
-            // Start the main hack timer (this will now only respond to keyboard/click if pointer-events weren't 'none')
-            // Since we set pointer-events: none on body, it effectively stops all interaction, including clicks
-            // The hack will only initiate based on the timer now.
-            resetHackTimer(); 
+            // Start the main hack timer
+            resetHackTimer();
         }, 2000); // Match the CSS transition duration for startupOverlay fade-out
     }, 100); // Small initial delay
 }
@@ -844,7 +839,6 @@ function startFlashingColors() {
 }
 
 function resetHackTimer() {
-    // Only reset if not hacking or terminated. We've removed external listeners for interaction.
     if (!isStartupComplete || isHacking || isTerminated) return; 
     
     clearTimeout(destructTimer);
@@ -852,19 +846,19 @@ function resetHackTimer() {
 }
 
 function initiateSystemHack() {
-    if (isHacking || isTerminated) return; // Prevent hack if already terminated
+    if (isHacking || isTerminated) return; 
     isHacking = true;
     
     // Clear any existing timers
     clearTimeout(destructTimer);
 
-    // Re-enable pointer-events temporarily for hack phase if needed, then set to none at termination
-    document.body.style.pointerEvents = 'auto'; // Allow interaction during the hack if desired for visuals
-    
+    // Disable interactions on venue-data during hack sequence
+    venueData.style.pointerEvents = 'none';
+
     // Show warning message with breach glow
     warningMessage.textContent = 'SYSTEM BREACH DETECTED';
     warningMessage.style.display = 'block';
-    breachGlow.classList.add('active'); // Re-activating the breach glow here
+    breachGlow.classList.add('active'); 
 
     // Fade out main content smoothly
     venueData.classList.remove('visible');
@@ -1031,10 +1025,9 @@ function startFrameSequence() {
     }, 200); // Slightly slower for better readability
 }
 
-// Event listeners for timer reset (these will be effectively disabled by body pointer-events:none)
-// Only attach these if the page is not in a terminated state
+// Event listeners for timer reset (only when not terminated)
 document.addEventListener('click', () => { if (!isTerminated) resetHackTimer(); });
-// Removed scroll event listener from here, as overflow: hidden and overscroll-behavior: none handle scrolling directly.
+// REMOVED 'scroll' listener here to prevent issues with mobile scrolling.
 document.addEventListener('keydown', () => { if (!isTerminated) resetHackTimer(); });
 
 // Canvas setup and effects
@@ -1126,8 +1119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sizeCanvas();
     generatePastShows();
     startStartupSequence();
-    // Removed disableJSPullToRefresh() call as CSS overscroll-behavior is more robust for scrolling.
-    // The body.style.pointerEvents = 'none' will handle overall interaction disabling.
 });
 
 </script>
