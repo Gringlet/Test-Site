@@ -6,7 +6,7 @@
 <title>CROSSROADS</title>
 <style>
 /* Base reset - embrace browser defaults like xerox embraced machine limits */
-*{margin:0;padding:0;box-sizing:border-box;}
+* {margin:0;padding:0;box-sizing:border-box;}
 
 body{
     background:#1a1815;
@@ -15,6 +15,7 @@ body{
     cursor:crosshair;
     color:#f4f1e8;
     position:relative;
+    will-change: background-color; /* For the final fade to black */
 }
 
 /* The site catches fire after viewing */
@@ -36,8 +37,8 @@ body{
     pointer-events:none;
     z-index:9998;
     opacity:0;
-    background:linear-gradient(180deg, 
-        transparent 0%, 
+    background:linear-gradient(180deg,
+        transparent 0%,
         transparent 40%,
         rgba(255,69,0,0.1) 60%,
         rgba(255,140,0,0.3) 70%,
@@ -45,6 +46,7 @@ body{
         rgba(255,69,0,0.7) 90%,
         rgba(139,0,0,0.9) 100%);
     clip-path:polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+    will-change: clip-path, opacity; /* Optimize animation */
 }
 
 /* Static TV overlay */
@@ -56,7 +58,7 @@ body{
     height:100%;
     pointer-events:none;
     z-index:9999;
-    opacity:0;
+    opacity:0; /* Hidden initially */
     background:
         repeating-linear-gradient(
             0deg,
@@ -72,6 +74,7 @@ body{
             transparent 2px
         );
     animation:static-noise 0.1s infinite;
+    will-change: transform, opacity; /* Optimize animation */
 }
 
 @keyframes static-noise{
@@ -92,8 +95,9 @@ body{
     pointer-events:none;
     z-index:9997;
     background:radial-gradient(ellipse at 50% 100%, rgba(255,0,0,0.3) 0%, transparent 70%);
-    opacity:0;
+    opacity:0; /* Hidden initially */
     animation:breach-pulse 0.5s ease-in-out infinite alternate;
+    will-change: opacity; /* Optimize animation */
 }
 
 @keyframes breach-pulse{
@@ -124,6 +128,7 @@ body{
     height:20px;
     background:linear-gradient(90deg, #ff0000, #00ff00, #0000ff);
     opacity:0;
+    will-change: top, opacity, transform; /* Optimize animation */
 }
 
 /* Screen distortion effect */
@@ -135,7 +140,7 @@ body{
     height:100%;
     pointer-events:none;
     z-index:10000;
-    opacity:0;
+    opacity:0; /* Hidden initially */
     background:repeating-linear-gradient(
         45deg,
         rgba(255,0,0,0.1) 0px,
@@ -144,6 +149,7 @@ body{
         transparent 6px,
         transparent 8px
     );
+    will-change: transform, opacity; /* Optimize animation */
 }
 
 /* Hack animations */
@@ -240,7 +246,8 @@ body{
 /* Content hacking effect */
 .hacked-content{
     animation:digital-flicker 0.1s infinite;
-    filter:contrast(300%) saturate(200%);
+    filter:contrast(200%) saturate(150%); /* Reduced for better mobile performance */
+    will-change: filter, transform; /* Optimize animation */
 }
 
 /* Flash frame effect */
@@ -255,6 +262,7 @@ body{
     pointer-events:none;
     background:#fff;
     mix-blend-mode:difference;
+    will-change: opacity, background; /* Optimize animation */
 }
 
 /* Canvas for generative flyer system */
@@ -265,9 +273,15 @@ body{
 
 /* Main content emerges from noise */
 .venue-data{
-    position:relative;z-index:2;min-height:100vh;padding:20px;
+    position:relative;
+    z-index:20; /* Higher z-index to be visible initially */
+    min-height:100vh;
+    padding:20px;
     filter:contrast(var(--contrast)) blur(var(--bleed));
     transform:rotate(var(--drift));
+    opacity: 1; /* Fully visible initially */
+    transition: opacity 1s ease-out; /* Smooth fade out when hack begins */
+    will-change: filter, transform, opacity; /* Optimize animation */
 }
 
 /* Tonight's billboard */
@@ -297,6 +311,7 @@ body{
     color:#1a1815;padding:20px;margin:15px;
     box-shadow:2px 2px 10px rgba(0,0,0,0.5);
     transform:rotate(-1deg);position:relative;max-width:300px;display:inline-block;vertical-align:top;
+    will-change: transform, filter, box-shadow; /* Optimize animation */
 }
 .sticky-note::before{content:'';position:absolute;inset:0;background:
     radial-gradient(circle at 20% 80%,rgba(139,69,19,0.1) 0%,transparent 50%),
@@ -328,7 +343,7 @@ body{
     background:conic-gradient(from var(--angle) at 50% 50%,transparent 0deg,#f4f1e8 5deg,
     transparent 10deg,transparent 20deg,#f4f1e8 25deg,transparent 30deg);
     animation:kaleidoscope-spin var(--speed) linear infinite;}
-@keyframes kaleidoscope-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+@keyframes kaleidoscope-spin{from{transform:rotate(0deg);}to{transform:360deg;}}
 
 /* Emergency broadcast system */
 .system-message{position:fixed;bottom:20px;right:20px;background:red;color:white;
@@ -385,11 +400,94 @@ body{
 }
 .tl{top:-14px;left:-18px;transform:rotate(-6deg);}
 .tr{top:-14px;right:-18px;transform:rotate(5deg);}
+
+/* New styles for hack sequence */
+.hack-frame-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001; /* Ensure it's above other content when active */
+    opacity: 0; /* Hidden by default */
+    background: #000; /* Start with black background for flashes */
+    transition: opacity 0.5s ease-out; /* Smooth fade in/out */
+    pointer-events: none; /* Allows interaction with content below until hack starts */
+}
+
+.hack-frame-container.active {
+    pointer-events: auto; /* Enable pointer events when hack is active */
+    background: repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,0.05) 0px,
+            rgba(0,0,0,0.1) 1px,
+            rgba(255,255,255,0.05) 2px,
+            transparent 3px
+        ); /* Static background for hack frames */
+}
+
+
+.hack-frame-text {
+    color: #ffffff;
+    font-family: monospace;
+    text-align: center;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    filter: contrast(150%);
+    transform: translateY(0);
+    opacity: 1;
+    transition: all 0.1s linear; /* Quick transition for flicker effect */
+}
+
+.final-frame-text {
+    text-shadow: 0 0 20px rgba(255,69,0,0.8);
+    background:radial-gradient(ellipse at 50% 100%, rgba(255,69,0,0.2) 0%, transparent 70%);
+}
+
+.final-frame-bottom-glow {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,69,0,0.3) 100%);
+    pointer-events: none;
+    z-index: 10000; /* Below the text, above other content */
+    opacity: 0; /* Hidden until final frame */
+    transition: opacity 0.5s ease-in;
+}
+
+.transmission-terminated-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    color: #333;
+    font-family: monospace;
+    font-size: 1.2em;
+    opacity: 0;
+    transition: opacity 2s ease-out;
+    z-index: 10002; /* Ensures it's on top of everything */
+    pointer-events: none; /* Allows interaction beneath until active */
+}
+
+.transmission-terminated-container.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 </style>
 </head>
 <body>
 
-<!-- SVG Filters for hand‑drawn effect -->
 <svg style="display:none">
     <filter id="roughPaper">
         <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="5" result="noise"/>
@@ -397,21 +495,19 @@ body{
     </filter>
 </svg>
 
-<!-- Fire, static and breach overlays -->
 <div id="fire-overlay"></div>
 <div id="static-overlay"></div>
 <div id="distortion-overlay"></div>
 <div class="breach-glow" id="breach-glow"></div>
 
-<!-- Kaleidoscopic background -->
 <div class="kaleidoscope">
     <div class="kaleidoscope-layer" style="--angle:0deg;--speed:60s;"></div>
-    <div class="kaleidoscope-layer" style="--angle:45deg;--speed:90s;transform:scale(.8);"></div>
+    <div class="kaleidoscop-layer" style="--angle:45deg;--speed:90s;transform:scale(.8);"></div>
     <div class="kaleidoscope-layer" style="--angle:90deg;--speed:120s;transform:scale(.6);"></div>
     <div class="kaleidoscope-layer" style="--angle:135deg;--speed:45s;transform:scale(1.2);"></div>
     <div class="kaleidoscope-layer" style="--angle:180deg;--speed:75s;transform:scale(.9);"></div>
     <div class="kaleidoscope-layer" style="--angle:225deg;--speed:105s;transform:scale(.7);"></div>
-    <div class="kaleidoscope-layer" style="--angle:270deg;--speed:85s;transform:scale(1.1);"></div>
+    <div class="kaleidoscop-layer" style="--angle:270deg;--speed:85s;transform:scale(1.1);"></div>
     <div class="kaleidoscope-layer" style="--angle:315deg;--speed:65s;transform:scale(.5);"></div>
     <div class="kaleidoscope-layer" style="--angle:30deg;--speed:140s;transform:scale(1.3);"></div>
     <div class="kaleidoscope-layer" style="--angle:210deg;--speed:55s;transform:scale(.4);"></div>
@@ -419,15 +515,12 @@ body{
     <div class="kaleidoscope-layer" style="--angle:15deg;--speed:110s;transform:scale(.65);"></div>
 </div>
 
-<!-- Dynamic flyer canvas -->
 <canvas id="flyer-generator"></canvas>
 
-<!-- Main venue interface -->
-<div class="venue-data banding">
+<div class="venue-data banding" id="venue-data">
     <div class="deteriorate">
         <h1 class="hand-drawn">[CROSS/ROADS]</h1>
 
-        <!-- Tonight's show billboard -->
         <div class="tonight-billboard">
             <h2>UPCOMING SHOW: 12/14</h2>
             <div class="current-show"><span class="gibberish-text">▓▓█░ ░▓██</span><span>7:30PM</span></div>
@@ -436,7 +529,6 @@ body{
             <div class="current-show"><span class="gibberish-text">▓░██ ░▓▓█</span><span>9:45PM</span></div>
         </div>
 
-        <!-- Venue rules -->
         <div class="venue-rules">
             <h3>HOUSE RULES</h3>
             <ul>
@@ -448,7 +540,6 @@ body{
             </ul>
         </div>
 
-        <!-- Past shows section -->
         <div class="past-shows">
             <h3>ARCHIVE</h3>
             <div id="past-shows-container"></div>
@@ -456,47 +547,67 @@ body{
     </div>
 </div>
 
-<!-- System messages -->
 <div class="system-message" id="warning">SYSTEM BREACH DETECTED</div>
 
+<div class="hack-frame-container" id="hack-frame-container">
+    <div class="hack-frame-text" id="hack-frame-text"></div>
+</div>
+
+<div class="transmission-terminated-container" id="transmission-terminated-container">
+    TRANSMISSION TERMINATED
+</div>
+
 <script>
-// System hack timer (30 seconds)
+// System hack timer (25 seconds for legibility, then chaos)
+const HACK_DELAY_MS = 25000;
 let destructTimer;
 let isHacking = false;
+
+// Get references to main elements
+const venueData = document.getElementById('venue-data');
+const fireOverlay = document.getElementById('fire-overlay');
+const staticOverlay = document.getElementById('static-overlay');
+const distortionOverlay = document.getElementById('distortion-overlay');
+const breachGlow = document.getElementById('breach-glow');
+const warningMessage = document.getElementById('warning');
+const hackFrameContainer = document.getElementById('hack-frame-container');
+const hackFrameText = document.getElementById('hack-frame-text');
+const transmissionTerminatedContainer = document.getElementById('transmission-terminated-container');
 
 function initiateSystemHack() {
     if (isHacking) return;
     isHacking = true;
-    
+
     // Show warning message with breach glow
-    const warning = document.getElementById('warning');
-    const breachGlow = document.getElementById('breach-glow');
-    warning.textContent = 'SYSTEM BREACH DETECTED';
-    warning.style.display = 'block';
+    warningMessage.textContent = 'SYSTEM BREACH DETECTED';
+    warningMessage.style.display = 'block';
     breachGlow.style.opacity = '1';
-    
+
+    // Fade out main content
+    venueData.style.opacity = '0';
+
+    // Activate hack frame container and its background
+    hackFrameContainer.classList.add('active');
+    hackFrameContainer.style.opacity = '1'; // Ensure it's visible
+
+
     setTimeout(() => {
-        warning.style.display = 'none';
+        warningMessage.style.display = 'none';
         breachGlow.style.opacity = '0';
     }, 2000);
-    
+
     // Start combined effects
-    const fireOverlay = document.getElementById('fire-overlay');
-    const staticOverlay = document.getElementById('static-overlay');
-    const distortionOverlay = document.getElementById('distortion-overlay');
-    
-    // Begin fire + static animation
     fireOverlay.style.animation = 'ignite 4s ease-out forwards';
     staticOverlay.style.opacity = '1';
     distortionOverlay.style.animation = 'screen-distort 3s ease-out forwards';
-    
+
     // Add content hacking effect after 1 second
     setTimeout(() => {
-        document.querySelector('.venue-data').classList.add('hacked-content');
+        venueData.classList.add('hacked-content'); // Apply digital flicker to fading content
         createGlitchBars();
     }, 1000);
-    
-    // Start frame sequence after 4 seconds
+
+    // Start frame sequence after 4 seconds (after initial fire/distortion starts)
     setTimeout(() => {
         startFrameSequence();
     }, 4000);
@@ -511,7 +622,7 @@ function createGlitchBars() {
             bar.style.background = `linear-gradient(90deg, rgba(255,255,255,0.8), rgba(0,0,0,0.8))`;
             bar.style.animation = `glitch-bars ${0.5 + Math.random() * 0.5}s linear forwards`;
             document.body.appendChild(bar);
-            
+
             setTimeout(() => bar.remove(), 1000);
         }, Math.random() * 2000);
     }
@@ -519,39 +630,21 @@ function createGlitchBars() {
 
 function startFrameSequence() {
     const frames = [
-        'No Gods, No Masters',
-        'Burn It All Down',
-        'Smash The State',
-        'Fight The Power',
-        'Anarchy Reigns',
-        'Question Authority',
-        'System\'s Fucked',
-        'Power to the People',
-        'Fuck the Norm',
-        'Chaos is Order',
-        'DIY or Die',
-        'Eat The Rich',
-        'Resist and Exist',
-        'No Future',
-        'Live Free or Die',
-        'We Are The Weirdos',
-        'Destroy What Destroys You',
-        'Another World Is Possible',
-        'Off The Grid',
-        'Solidarity Forever',
-        'No Compliance',
-        'Break The Chains',
-        'Unfuck The World',
-        'Your Laws Don\'t Apply',
-        'Riot, Don\'t Diet',
-        'Piss On Your Progress',
-        'Revolt Now!',
-        'No Compromise, Total Liberation'
+        'No Gods, No Masters', 'Burn It All Down', 'Smash The State', 'Fight The Power',
+        'Anarchy Reigns', 'Question Authority', 'System\'s Fucked', 'Power to the People',
+        'Fuck the Norm', 'Chaos is Order', 'DIY or Die', 'Eat The Rich',
+        'Resist and Exist', 'No Future', 'Live Free or Die', 'We Are The Weirdos',
+        'Destroy What Destroys You', 'Another World Is Possible', 'Off The Grid',
+        'Solidarity Forever', 'No Compliance', 'Break The Chains', 'Unfuck The World',
+        'Your Laws Don\'t Apply', 'Riot, Don\'t Diet', 'Piss On Your Progress',
+        'Revolt Now!', 'No Compromise, Total Liberation'
     ];
-    
+
     let frameIndex = 0;
+    let finalGlowElement;
+
     const frameInterval = setInterval(() => {
-        // Static flash effect
+        // Static flash effect (this creates a temporary div for the flash)
         const flash = document.createElement('div');
         flash.className = 'flash-frame';
         flash.style.background = `
@@ -566,85 +659,69 @@ function startFrameSequence() {
         flash.style.opacity = '1';
         document.body.appendChild(flash);
         setTimeout(() => flash.remove(), 50);
-        
-        // Change content with TV static background
-        document.body.style.background = `
-            #000 repeating-linear-gradient(
-                0deg,
-                rgba(255,255,255,0.05) 0px,
-                rgba(0,0,0,0.1) 1px,
-                rgba(255,255,255,0.05) 2px,
-                transparent 3px
-            )
-        `;
-        
+
         const isLastFrame = frameIndex === frames.length - 1;
-        
+
         if (isLastFrame) {
-            // Final "Total Liberation" frame - linger for 5 seconds
-            document.body.innerHTML = `
-                <div style="
-                    color:#ffffff;
-                    font-family:monospace;
-                    text-align:center;
-                    padding-top:45vh;
-                    font-size:2em;
-                    text-shadow: 0 0 20px rgba(255,69,0,0.8);
-                    background:radial-gradient(ellipse at 50% 100%, rgba(255,69,0,0.2) 0%, transparent 70%);
-                ">TOTAL LIBERATION</div>
-                <div style="
-                    position:fixed;
-                    bottom:0;
-                    left:0;
-                    width:100%;
-                    height:40%;
-                    background:linear-gradient(180deg, transparent 0%, rgba(255,69,0,0.3) 100%);
-                    pointer-events:none;
-                "></div>
-            `;
-            
+            // Final "Total Liberation" frame
+            hackFrameText.textContent = 'TOTAL LIBERATION';
+            hackFrameText.classList.add('final-frame-text');
+
+            // Add the glowing effect from the bottom for the final frame
+            finalGlowElement = document.createElement('div');
+            finalGlowElement.className = 'final-frame-bottom-glow';
+            document.body.appendChild(finalGlowElement);
+            // Trigger opacity change after it's appended to the DOM
+            setTimeout(() => finalGlowElement.style.opacity = '1', 10);
+
             clearInterval(frameInterval);
-            
-            // Fade to black after 5 seconds
+
+            // Fade out hack frame and fade to black after 5 seconds
             setTimeout(() => {
-                document.body.style.transition = 'all 2s ease-out';
-                document.body.style.background = '#000';
-                document.body.innerHTML = '<div style="color:#333;font-family:monospace;text-align:center;padding-top:45vh;font-size:1.2em;">TRANSMISSION TERMINATED</div>';
-            }, 5000);
+                hackFrameContainer.style.opacity = '0'; // Fade out the frame container
+                if (finalGlowElement) finalGlowElement.style.opacity = '0'; // Fade out the glow
+
+                // Fade body to black and show "Transmission Terminated"
+                document.body.style.backgroundColor = '#000';
+                document.body.style.backgroundImage = 'none'; // Remove any repeating gradients
+                document.body.style.filter = 'none'; // Ensure no filters interfere with black
+                document.body.style.cursor = 'default'; // Reset cursor
+
+                // Show the "Transmission Terminated" message
+                transmissionTerminatedContainer.classList.add('active');
+                transmissionTerminatedContainer.style.opacity = '1';
+
+                // Prevent further user interaction after termination
+                document.body.style.pointerEvents = 'none';
+
+                // Optional: set a timer to reload the page after a certain period of termination
+                // setTimeout(() => location.reload(), 10000); // Reload after 10 seconds of termination
+            }, 5000); // Linger for 5 seconds on "Total Liberation"
         } else {
             // Regular frames with static effect
-            document.body.innerHTML = `
-                <div style="
-                    color:#ffffff;
-                    font-family:monospace;
-                    text-align:center;
-                    padding-top:45vh;
-                    font-size:2em;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                    filter: contrast(150%);
-                ">${frames[frameIndex]}</div>
-            `;
+            hackFrameText.textContent = frames[frameIndex];
         }
-        
         frameIndex++;
     }, 150); // Slightly slower for readability
 }
 
-// Start hack timer on page load (30 seconds)
-destructTimer = setTimeout(initiateSystemHack, 30000);
+// Start hack timer on page load (25 seconds)
+destructTimer = setTimeout(initiateSystemHack, HACK_DELAY_MS);
 
 // Reset timer on user interaction (optional - keeps them engaged)
+// This part is crucial for allowing the user to interact for 25 seconds
+// and resetting the timer if they interact again.
 document.addEventListener('click', () => {
     if (!isHacking) {
         clearTimeout(destructTimer);
-        destructTimer = setTimeout(initiateSystemHack, 30000);
+        destructTimer = setTimeout(initiateSystemHack, HACK_DELAY_MS);
     }
 });
 
 document.addEventListener('scroll', () => {
     if (!isHacking) {
         clearTimeout(destructTimer);
-        destructTimer = setTimeout(initiateSystemHack, 30000);
+        destructTimer = setTimeout(initiateSystemHack, HACK_DELAY_MS);
     }
 });
 
@@ -678,7 +755,7 @@ const container=document.getElementById('past-shows-container');
 for(let i=0;i<8;i++){
     const note=document.createElement('div');
     note.className='sticky-note';
-    note.style.setProperty('--rand',Math.random());              // random tilt
+    note.style.setProperty('--rand',Math.random());    // random tilt
     // stains
     if(Math.random()>.7){
         const s=document.createElement('div');
@@ -699,9 +776,6 @@ for(let i=0;i<8;i++){
     note.innerHTML+=`<span class="tape tl"></span><span class="tape tr"></span>`; // masking tape
     container.appendChild(note);
 }
-
-// Smooth scrolling (removed jitter effect)
-// No scroll effects needed - let browser handle smooth scrolling naturally
 
 // Resize
 addEventListener('resize',()=>{sizeCanvas();generateArtifacts();});
