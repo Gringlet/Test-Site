@@ -8,6 +8,12 @@
 /* Base reset - embrace browser defaults like xerox embraced machine limits */
 * {margin:0;padding:0;box-sizing:border-box;}
 
+/* --- FIX FOR MOBILE PULL-TO-REFRESH --- */
+html, body {
+    overscroll-behavior: none; /* Prevents pull-to-refresh on mobile */
+}
+/* ------------------------------------ */
+
 body{
     background:#1a1815;
     overflow-x:hidden;
@@ -1012,13 +1018,13 @@ function startFrameSequence() {
     }, 200); // Slightly slower for better readability
 }
 
-// Function to prevent pull-to-refresh
-function disablePullToRefresh() {
+// Function to prevent pull-to-refresh (using JS - less critical but good for general touch control)
+function disableJSPullToRefresh() {
     let touchstartY = 0;
 
     document.addEventListener('touchstart', e => {
         touchstartY = e.touches[0].clientY;
-    });
+    }, { passive: false });
 
     document.addEventListener('touchmove', e => {
         const touchmoveY = e.touches[0].clientY;
@@ -1032,6 +1038,13 @@ function disablePullToRefresh() {
         }
     }, { passive: false }); // passive: false is crucial for preventDefault() to work
 }
+
+
+// Event listeners for timer reset (only when not hacking or terminated)
+// Only attach these if the page is not in a terminated state
+document.addEventListener('click', () => { if (!isTerminated) resetHackTimer(); });
+document.addEventListener('scroll', () => { if (!isTerminated) resetHackTimer(); });
+document.addEventListener('keydown', () => { if (!isTerminated) resetHackTimer(); });
 
 // Canvas setup and effects
 const canvas = document.getElementById('flyer-generator');
@@ -1122,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sizeCanvas();
     generatePastShows();
     startStartupSequence();
-    disablePullToRefresh(); // Call this function on page load
+    disableJSPullToRefresh(); // Keep this for broader touch control, though CSS is key for pull-to-refresh
 });
 
 </script>
