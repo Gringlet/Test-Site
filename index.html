@@ -8,6 +8,8 @@
 /* Base reset - embrace browser defaults like xerox embraced machine limits */
 * {margin:0;padding:0;box-sizing:border-box;}
 
+// Event listeners for timer reset (only when not terminated)
+
 /* Keep overscroll-behavior to prevent accidental pull-to-refresh */
 html, body {
     height: 100%; /* Keep this for consistent layout */
@@ -292,24 +294,24 @@ body{
     }
 }
 
+@keyframes screen-shake{
+    0%{transform:translateX(0) translateY(0);}
+    10%{transform:translateX(-5px) translateY(2px);}
+    20%{transform:translateX(5px) translateY(-2px);}
+    30%{transform:translateX(-3px) translateY(4px);}
+    40%{transform:translateX(3px) translateY(-4px);}
+    50%{transform:translateX(-6px) translateY(1px);}
+    60%{transform:translateX(6px) translateY(-1px);}
+    70%{transform:translateX(-2px) translateY(3px);}
+    80%{transform:translateX(2px) translateY(-3px);}
+    90%{transform:translateX(-4px) translateY(2px);}
+    100%{transform:translateX(4px) translateY(-2px);}
+}
+
 /* Content hacking effect */
 .hacked-content{
     animation: digital-flicker 0.15s infinite;
     filter: contrast(150%) saturate(120%);
-}
-
-/* Flash frame effect */
-.flash-frame{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    z-index:10001;
-    opacity:0;
-    pointer-events:none;
-    background:#fff;
-    mix-blend-mode:difference;
 }
 
 /* Canvas for generative flyer system */
@@ -641,30 +643,7 @@ body{
     transition: opacity 0.5s ease-in;
 }
 
-.transmission-terminated-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #000; /* Ensure it's black */
-    color: #ffffff; /* White text */
-    font-family: monospace;
-    font-size: 2.5em;
-    opacity: 0; /* Starts hidden */
-    transition: opacity 2s ease-out; /* Smooth fade-in */
-    z-index: 10002;
-    pointer-events: none; /* Initially not interactive */
-    text-shadow: 0 0 10px rgba(255,255,255,0.5); /* Slight glow for text */
-}
 
-.transmission-terminated-container.active {
-    opacity: 1;
-    pointer-events: auto; /* Becomes interactive */
-}
 
 </style>
 </head>
@@ -700,19 +679,27 @@ body{
         <h1 class="hand-drawn">[CROSS/ROADS]</h1>
 
         <div class="tonight-billboard">
-            <h2>UPCOMING SHOW: August 22/23</h2>
-            <div class="current-show"><span class="gibberish-text">▓▓█░ ░▓██</span><span>7:30PM</span></div>
-            <div class="current-show"><span class="gibberish-text">██▓░ ▓▓░█</span><span>8:15PM</span></div>
-            <div class="current-show"><span class="gibberish-text">░██▓ █░▓█</span><span>9:00PM</span></div>
-            <div class="current-show"><span class="gibberish-text">▓░██ ░▓▓█</span><span>9:45PM</span></div>
+            <h2>UPCOMING SHOW: August 22/23 Festival</h2>
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 1.3em; margin-bottom: 15px; text-decoration: underline;">22nd - Late for Skool</h3>
+                <div class="current-show"><span>Calf in Pasture</span><span>7:30PM</span></div>
+                <div class="current-show"><span>Kashmere Mammoths</span><span>8:15PM</span></div>
+                <div class="current-show"><span>Patchworked</span><span>9:00PM</span></div>
+                <div class="current-show"><span>Radio Static</span><span>9:45PM</span></div>
+            </div>
+            <div>
+                <h3 style="font-size: 1.3em; margin-bottom: 15px; text-decoration: underline;">23rd - 2 Kool 4 Skool</h3>
+                <div class="current-show"><span>Fat By The Gallon</span><span>7:30PM</span></div>
+                <div class="current-show"><span>EZPZ</span><span>8:15PM</span></div>
+                <div class="current-show"><span>Gravehounds</span><span>9:00PM</span></div>
+            </div>
         </div>
 
         <div class="venue-rules">
             <h3>HOUSE RULES</h3>
             <ul>
                 <li>18+ ONLY - MUST SHOW ID</li>
-                <li>YOU MUST FOLLOW CROSSROADS.DENTON TO ENTER</li>
-                <li>SOMEONE FROM ONE OF THE BANDS MUST BE FOLLOWING YOU TO GET IN</li>
+                <li>YOU MUST FOLLOW @CROSSROADS.DENTON AND/OR ONE OF THE BANDS TO GET IN</li>
                 <li>NO COVER CHARGE</li>
                 <li>RESPECT THE SPACE</li>
             </ul>
@@ -731,9 +718,7 @@ body{
     <div class="hack-frame-text" id="hack-frame-text"></div>
 </div>
 
-<div class="transmission-terminated-container" id="transmission-terminated-container">
-    TRANSMISSION TERMINATED
-</div>
+
 
 <script>
 // System Configuration
@@ -752,7 +737,6 @@ const breachGlow = document.getElementById('breach-glow');
 const warningMessage = document.getElementById('warning');
 const hackFrameContainer = document.getElementById('hack-frame-container');
 const hackFrameText = document.getElementById('hack-frame-text');
-const transmissionTerminatedContainer = document.getElementById('transmission-terminated-container');
 const startupOverlay = document.getElementById('startup-overlay');
 const kaleidoscopeElement = document.querySelector('.kaleidoscope'); // Get reference to kaleidoscope
 
@@ -799,28 +783,6 @@ function startStartupSequence() {
 function startFlashingColors() {
     let startupPhraseIndex = 0;
     const startupInterval = setInterval(() => {
-        // Create static flash effect
-        const flash = document.createElement('div');
-        flash.className = 'flash-frame';
-        flash.style.background = `
-            repeating-linear-gradient(
-                0deg,
-                rgba(255,255,255,0.9) 0px,
-                rgba(0,0,0,0.9) 2px,
-                rgba(255,255,255,0.9) 4px,
-                rgba(0,0,0,0.9) 6px
-            )
-        `;
-        flash.style.opacity = '1';
-        document.body.appendChild(flash);
-        
-        // Remove flash after brief moment
-        setTimeout(() => {
-            if (flash.parentNode) {
-                flash.parentNode.removeChild(flash);
-            }
-        }, 50);
-
         // Update text with startup phrases
         hackFrameText.textContent = startupPhrases[startupPhraseIndex];
         hackFrameText.classList.remove('final-frame-text'); // Ensure no final frame styling
@@ -852,45 +814,27 @@ function initiateSystemHack() {
     // Clear any existing timers
     clearTimeout(destructTimer);
 
-    // Disable interactions on venue-data during hack sequence
-    venueData.style.pointerEvents = 'none';
-
-    // Show warning message with breach glow
-    warningMessage.textContent = 'SYSTEM BREACH DETECTED';
-    warningMessage.style.display = 'block';
-    breachGlow.classList.add('active');    
-
-    // Fade out main content smoothly
-    venueData.classList.remove('visible');
-
-    // Hide warning after 2 seconds
+    // Brief rainbow flicker before ads start
+    let flickerCount = 0;
+    const flickerColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#0000ff', '#8000ff', '#1a1815'];
+    const briefFlicker = setInterval(() => {
+        document.body.style.backgroundColor = flickerColors[flickerCount % flickerColors.length];
+        flickerCount++;
+    }, 30);
+    
+    // Add brief static overlay
+    staticOverlay.classList.add('active');
+    
+    // Stop the brief glitch and start ads
     setTimeout(() => {
-        warningMessage.style.display = 'none';
-    }, 2000);
-
-    // Start combined effects with proper timing
-    setTimeout(() => {
-        fireOverlay.classList.add('igniting');
-        staticOverlay.classList.add('active');
-        distortionOverlay.classList.add('active');
-    }, 1000);
-
-    // Add content hacking effect
-    setTimeout(() => {
-        venueData.classList.add('hacked-content');
-        createGlitchBars();
-    }, 2000);
-
-    // Activate hack frame container for the *main* hack sequence
-    setTimeout(() => {
-        hackFrameContainer.classList.add('active');
-        hackFrameContainer.style.opacity = '1';
-    }, 3000);
-
-    // Start main frame sequence (the "No Gods, No Masters" sequence)
-    setTimeout(() => {
-        startFrameSequence();
-    }, 4000);
+        clearInterval(briefFlicker);
+        document.body.style.backgroundColor = '#1a1815';
+        staticOverlay.classList.remove('active');
+        staticOverlay.style.opacity = '0';
+        
+        // Now start the pop-up chaos over the original content
+        createPopUpChaos();
+    }, 300); // 0.3 seconds of brief glitch
 }
 
 function createGlitchBars() {
@@ -918,114 +862,299 @@ function createGlitchBars() {
     }
 }
 
-function startFrameSequence() {
-    const frames = [
-        'No Gods, No Masters', 'Burn It All Down', 'Smash The State', 'Fight The Power',
-        'Anarchy Reigns', 'Question Authority', 'System\'s Fucked', 'Power to the People',
-        'Fuck the Norm', 'Chaos is Order', 'DIY or Die', 'Eat The Rich',
+function createPopUpChaos() {
+    const anarchyPhrases = [
+        'No Gods, No Masters', 'Burn It All Down', 'Fight The Power',
+        'Anarchy Reigns', 'Question Authority', 'Power to the People',
+        'Fuck the Norm', 'Chaos is Order', 'DIY or Die',
         'Resist and Exist', 'No Future', 'Live Free or Die', 'We Are The Weirdos',
         'Destroy What Destroys You', 'Another World Is Possible', 'Off The Grid',
         'Solidarity Forever', 'No Compliance', 'Break The Chains', 'Unfuck The World',
         'Your Laws Don\'t Apply', 'Riot, Don\'t Diet', 'Piss On Your Progress',
-        'Revolt Now!', 'TOTAL LIBERATION'
+        'Revolt Now!', 'TOTAL LIBERATION', 'KILL YOUR IDOLS', 'RAGE AGAINST',
+        'DIRECT ACTION', 'MUTUAL AID', 'BLACK FLAG', 'SOLIDARITY', 'RESIST', 'REVOLT', 
+        'CHAOS', 'FREEDOM', 'ANARCHY', 'PUNK ROCK', 'DIY FOREVER', 'NO GODS NO KINGS', 
+        'QUESTION EVERYTHING', 'STAY WEIRD', 'UNDERGROUND', 'REBEL SPIRIT', 'WILD & FREE',
+        'NOISE NOT MUSIC', 'LOUD & PROUD', 'BASEMENT SHOWS', 'MOSH PIT', 'STAGE DIVE'
     ];
-
-    let frameIndex = 0;
-    let finalGlowElement;
-
-    const frameInterval = setInterval(() => {
-        // Create static flash effect
-        const flash = document.createElement('div');
-        flash.className = 'flash-frame';
-        flash.style.background = `
-            repeating-linear-gradient(
-                0deg,
-                rgba(255,255,255,0.9) 0px,
-                rgba(0,0,0,0.9) 2px,
-                rgba(255,255,255,0.9) 4px,
-                rgba(0,0,0,0.9) 6px
-            )
-        `;
-        flash.style.opacity = '1';
-        document.body.appendChild(flash);
+    
+    const logoTexts = ['[C/R]', 'CROSSROADS.DENTON', '[CROSS/ROADS]', 'C/R', 'CROSSROADS'];
+    
+    // Pop-up ads with random timing over 5 seconds
+    const totalAds = 150;
+    let firstXClicked = false;
+    let normalTimeoutId;
+    
+    for (let i = 0; i < totalAds; i++) {
+        // Random delay between 0 and 5000ms (5 seconds)
+        const randomDelay = Math.random() * 5000;
         
-        // Remove flash after brief moment
         setTimeout(() => {
-            if (flash.parentNode) {
-                flash.parentNode.removeChild(flash);
-            }
-        }, 50);
-
-        const isLastFrame = frameIndex === frames.length - 1;
-
-        if (isLastFrame) {
-            // Final frame with special effects
-            hackFrameText.textContent = frames[frameIndex];
-            hackFrameText.classList.add('final-frame-text');
-
-            // Add bottom glow effect
-            finalGlowElement = document.createElement('div');
-            finalGlowElement.className = 'final-frame-bottom-glow';
-            document.body.appendChild(finalGlowElement);
+            const popUpAd = document.createElement('div');
             
-            setTimeout(() => {
-                finalGlowElement.style.opacity = '1';
-            }, 10);
-
-            clearInterval(frameInterval);
-
-            // This is the end of the *hack* sequence, clean up and transition to terminated state
-            setTimeout(() => {
-                // Fade out hack elements
-                hackFrameContainer.style.opacity = '0';
-                if (finalGlowElement) {
-                    finalGlowElement.style.opacity = '0'; // Fade out this final glow
-                }
-                fireOverlay.classList.remove('igniting');
-                fireOverlay.style.opacity = '0';
-                staticOverlay.classList.remove('active');
-                staticOverlay.style.opacity = '0';
-                distortionOverlay.classList.remove('active');
-                distortionOverlay.style.opacity = '0';
-                breachGlow.classList.remove('active');
-                breachGlow.style.opacity = '0';
-
-                // Ensure all main content and canvas are completely hidden and non-interactive
-                venueData.classList.remove('visible');
-                venueData.classList.remove('hacked-content');
-                venueData.style.display = 'none'; // Completely hide main content
-                canvas.style.opacity = '0';
-                canvas.style.pointerEvents = 'none';
-                kaleidoscopeElement.style.opacity = '0'; // Hide kaleidoscope
-                kaleidoscopeElement.style.pointerEvents = 'none';
-                warningMessage.style.display = 'none'; // Ensure warning is hidden
-
-
-                // Now, display the "Transmission Terminated" screen
-                transmissionTerminatedContainer.classList.add('active');
-                document.body.style.backgroundColor = '#000'; // Ensure body is black
-                document.body.style.cursor = 'default';
-                document.body.style.pointerEvents = 'none'; // Lock all interaction
-                isTerminated = true; // Set flag to prevent further actions
-
-                // Clean up glow element after fade
-                setTimeout(() => {
-                    if (finalGlowElement && finalGlowElement.parentNode) {
-                        finalGlowElement.parentNode.removeChild(finalGlowElement);
+            // Random content - mix of anarchy phrases and logos
+            const isAnarchyPhrase = Math.random() < 0.7;
+            const mainText = isAnarchyPhrase 
+                ? anarchyPhrases[Math.floor(Math.random() * anarchyPhrases.length)]
+                : logoTexts[Math.floor(Math.random() * logoTexts.length)];
+            
+            // Random ad colors - different shades of gray
+            const grayShades = ['#2a2a2a', '#3a3a3a', '#4a4a4a', '#5a5a5a', '#6a6a6a', '#7a7a7a', '#8a8a8a', '#9a9a9a'];
+            const bgColor = grayShades[Math.floor(Math.random() * grayShades.length)];
+            
+            // Random positioning
+            const x = Math.random() * (window.innerWidth - 250);
+            const y = Math.random() * (window.innerHeight - 150);
+            
+            // Random size
+            const width = 200 + Math.random() * 200; // 200-400px
+            const height = 100 + Math.random() * 150; // 100-250px
+            
+            // Create the pop-up structure with red X button
+            popUpAd.innerHTML = `
+                <div style="position: relative; width: 100%; height: 100%; border: 2px solid #000; background: ${bgColor}; font-family: arial, sans-serif; overflow: hidden;">
+                    <div style="position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; background: #cc0000; color: #fff; text-align: center; line-height: 16px; font-size: 12px; font-weight: bold; cursor: pointer; border: 1px solid #000;">×</div>
+                    <div style="padding: 10px 25px 10px 10px; color: #fff; font-weight: bold; text-shadow: 1px 1px 0px #000; font-size: ${16 + Math.random() * 16}px; word-wrap: break-word;">
+                        ${mainText}
+                    </div>
+                    <div style="position: absolute; bottom: 5px; left: 5px; font-size: 12px; color: #fff; text-shadow: 1px 1px 0px #000;">
+                        CLICK HERE NOW!
+                    </div>
+                </div>
+            `;
+            
+            // Position and style the pop-up
+            popUpAd.style.position = 'fixed';
+            popUpAd.style.left = x + 'px';
+            popUpAd.style.top = y + 'px';
+            popUpAd.style.width = width + 'px';
+            popUpAd.style.height = height + 'px';
+            popUpAd.style.zIndex = '10004';
+            popUpAd.style.pointerEvents = 'auto'; // Make it interactive!
+            popUpAd.style.opacity = '0';
+            popUpAd.style.transition = 'opacity 0.1s ease-in';
+            popUpAd.style.boxShadow = '3px 3px 8px rgba(0,0,0,0.6)';
+            
+            document.body.appendChild(popUpAd);
+            
+            // Make the X button trigger glitch sequence on first click
+            const closeButton = popUpAd.querySelector('div[style*="background: #cc0000"]');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    if (!firstXClicked) {
+                        firstXClicked = true;
+                        clearTimeout(normalTimeoutId);
+                        startGlitchSequence();
+                    } else {
+                        // Normal close behavior for subsequent clicks
+                        popUpAd.style.opacity = '0';
+                        setTimeout(() => {
+                            if (popUpAd.parentNode) {
+                                popUpAd.parentNode.removeChild(popUpAd);
+                            }
+                        }, 100);
                     }
-                }, 1000);
-
-            }, 5000); // Linger for 5 seconds on "Total Liberation" before transitioning
-        } else {
-            // Regular frames
-            hackFrameText.textContent = frames[frameIndex];
-            hackFrameText.classList.remove('final-frame-text');
+                });
+            }
+            
+            // Immediate fade in
+            popUpAd.style.opacity = '1';
+            
+        }, randomDelay);
+    }
+    
+    // After 5 seconds (all pop-ups have appeared) + 8 seconds pause, then cut to transmission terminated
+    normalTimeoutId = setTimeout(() => {
+        if (!firstXClicked) {
+            startGlitchSequence();
         }
-        frameIndex++;
-    }, 200); // Slightly slower for better readability
+    }, 13000); // 5 seconds for pop-ups + 8 seconds pause
 }
 
-// Event listeners for timer reset (only when not terminated)
+function startGlitchSequence() {
+    // Toned down glitch effects - 30% less intense
+    staticOverlay.classList.add('active');
+    distortionOverlay.classList.add('active');
+    
+    // Gentler screen shake
+    document.body.style.animation = 'screen-shake 0.15s infinite';
+    
+    // Slower color flashing
+    let flashCount = 0;
+    const flashColors = ['#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#ffff00', '#1a1815'];
+    const flashInterval = setInterval(() => {
+        document.body.style.backgroundColor = flashColors[flashCount % flashColors.length];
+        flashCount++;
+    }, 80); // Slower flashing (was 50ms)
+    
+    // Make the original content glitch too
+    venueData.classList.add('hacked-content');
+    
+    // Make all pop-ups go crazy (but less crazy)
+    const allAds = document.querySelectorAll('div[style*="position: fixed"]');
+    allAds.forEach((ad, index) => {
+        if (ad.style.zIndex === '10004') {
+            // Less intense flickering
+            ad.style.animation = 'digital-flicker 0.08s infinite';
+            
+            // Less random movement
+            setTimeout(() => {
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = Math.random() * window.innerHeight;
+                ad.style.transition = 'all 0.15s linear'; // Slower transition
+                ad.style.left = randomX + 'px';
+                ad.style.top = randomY + 'px';
+                ad.style.transform = `rotate(${Math.random() * 360 - 180}deg) scale(${0.7 + Math.random() * 0.6})`; // Less extreme rotation and scaling
+            }, index * 30); // Slower stagger
+        }
+    });
+    
+    // Fewer glitch bars
+    for (let i = 0; i < 10; i++) { // Reduced from 15 to 10
+        setTimeout(() => {
+            const bar = document.createElement('div');
+            bar.className = 'glitch-bar';
+            bar.style.top = Math.random() * 100 + '%';
+            bar.style.background = `linear-gradient(90deg, rgba(255,0,0,0.6), rgba(0,255,0,0.6), rgba(0,0,255,0.6))`; // Slightly less opaque
+            bar.style.animation = `glitch-bars ${0.3 + Math.random() * 0.4}s linear forwards`; // Slower bars
+            document.body.appendChild(bar);
+            
+            bar.addEventListener('animationend', () => {
+                if (bar.parentNode) {
+                    bar.parentNode.removeChild(bar);
+                }
+            });
+        }, i * 70); // Slower stagger
+    }
+    
+    // Less intense error text
+    const errorText = document.createElement('div');
+    errorText.textContent = 'SYSTEM ERROR - BREACH DETECTED';
+    errorText.style.position = 'fixed';
+    errorText.style.top = '20%';
+    errorText.style.left = '50%';
+    errorText.style.transform = 'translateX(-50%)';
+    errorText.style.color = '#ff0000';
+    errorText.style.fontSize = '3.5em'; // Slightly smaller
+    errorText.style.fontFamily = 'monospace';
+    errorText.style.fontWeight = 'bold';
+    errorText.style.zIndex = '10006';
+    errorText.style.textShadow = '0 0 15px #ff0000'; // Less glow
+    errorText.style.animation = 'digital-flicker 0.12s infinite'; // Slower flicker
+    document.body.appendChild(errorText);
+    
+    // After moderate glitch, cut to transmission terminated
+    setTimeout(() => {
+        // Stop all effects
+        clearInterval(flashInterval);
+        document.body.style.animation = '';
+        document.body.style.backgroundColor = '#000';
+        document.body.style.transition = 'none';
+        
+        // Hide glitch effects
+        staticOverlay.classList.remove('active');
+        staticOverlay.style.opacity = '0';
+        distortionOverlay.classList.remove('active');
+        distortionOverlay.style.opacity = '0';
+        
+        // Hide original content
+        venueData.style.display = 'none';
+        canvas.style.opacity = '0';
+        kaleidoscopeElement.style.opacity = '0';
+        
+        // Remove error text
+        if (errorText.parentNode) {
+            errorText.parentNode.removeChild(errorText);
+        }
+        
+        // Hide all the pop-up ads instantly
+        allAds.forEach(ad => {
+            if (ad.style.zIndex === '10004') {
+                ad.style.display = 'none';
+            }
+        });
+        
+        // Start typewriter effect
+        setTimeout(() => {
+            startTypewriterEffect();
+        }, 100);
+        
+    }, 1500); // Same duration but less intense
+}
+
+function startTypewriterEffect() {
+    const message = 'TRANSMISSION TERMINATED';
+    const typewriterElement = document.createElement('div');
+    
+    typewriterElement.style.position = 'fixed';
+    typewriterElement.style.top = '50%';
+    typewriterElement.style.left = '50%';
+    typewriterElement.style.transform = 'translate(-50%, -50%)';
+    typewriterElement.style.color = '#ffffff';
+    typewriterElement.style.fontFamily = 'monospace';
+    typewriterElement.style.fontSize = '2.5em';
+    typewriterElement.style.fontWeight = 'bold';
+    typewriterElement.style.zIndex = '10005';
+    typewriterElement.style.textShadow = '0 0 10px rgba(255,255,255,0.5)';
+    typewriterElement.style.letterSpacing = '0.1em';
+    
+    document.body.appendChild(typewriterElement);
+    
+    let currentText = '';
+    let charIndex = 0;
+    let typoMade = false;
+    let correcting = false;
+    
+    // Random typo position (not at the very beginning or end)
+    const typoPosition = 3 + Math.floor(Math.random() * (message.length - 5));
+    const wrongChars = 'QWERTYUIOP[]ASDFGHJKLZXCVBNM';
+    const typoChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
+    
+    const typeInterval = setInterval(() => {
+        if (correcting) {
+            // Backspace the typo
+            currentText = currentText.slice(0, -1);
+            typewriterElement.textContent = currentText;
+            correcting = false;
+        } else if (charIndex < message.length) {
+            // Make a typo at the random position
+            if (charIndex === typoPosition && !typoMade) {
+                currentText += typoChar;
+                typewriterElement.textContent = currentText;
+                typoMade = true;
+                correcting = true;
+                // Don't increment charIndex yet, we need to correct this
+            } else {
+                // Normal typing
+                currentText += message[charIndex];
+                typewriterElement.textContent = currentText;
+                charIndex++;
+            }
+        } else {
+            clearInterval(typeInterval);
+            // Start infinite flashing after typing is complete
+            startInfiniteFlash(typewriterElement);
+        }
+    }, 40); // Much faster typing - 40ms per character
+}
+
+function startInfiniteFlash(element) {
+    function flashCycle() {
+        // On for 1.2 seconds
+        element.style.opacity = '1';
+        setTimeout(() => {
+            // Off for 0.7 seconds
+            element.style.opacity = '0';
+            setTimeout(() => {
+                flashCycle(); // Repeat forever
+            }, 700);
+        }, 1200);
+    }
+    
+    flashCycle();
+    document.body.style.pointerEvents = 'none';
+    isTerminated = true;
+}
 document.addEventListener('click', () => { if (!isTerminated) resetHackTimer(); });
 // REMOVED 'scroll' listener here to prevent issues with mobile scrolling.
 document.addEventListener('keydown', () => { if (!isTerminated) resetHackTimer(); });
@@ -1074,7 +1203,7 @@ window.addEventListener('resize', () => {
 });
 
 // Gibberish generator
-const chars = '░▓█▒▀▄■□▪▫';
+const chars = '▒▓█▒▀▄■□▪▫';
 const genGib = () => 
     Array.from({length: 3 + Math.floor(Math.random() * 3)}, 
         () => chars[Math.floor(Math.random() * chars.length)]
@@ -1082,8 +1211,8 @@ const genGib = () =>
 
 // Event data from the prompt
 const eventData = [
-    { event: "The Great Collapse", date: "7/26", bands: ["Entropic Parapraxis", "The Radio Static", "Axiom", "Blinds"] },
-    { event: "The Longest Day", date: "6/21", bands: ["Plot", "Blinds", "Right Behind You"] },
+    { event: "The Great Collapse", date: "7/26", bands: ["Entropic Parapraxis", "The Radio Static", "Axiom", "Blind"] },
+    { event: "The Longest Day", date: "6/21", bands: ["Plot", "Blind", "Right Behind You"] },
     { event: "Viva la Crossroads", date: "May 24th", bands: ["Entropic Parapraxis", "New Jack", "42 Scratch", "EZPZ"] },
     { event: "Midnight Tokers", date: "April 19th", bands: ["Supernothing", "Right Behind You", "Junk Car Girls"] },
     { event: "Transcendence Day", date: "March 22nd", bands: ["Kashmere Mammoths", "Immigration", "Right Behind You"] }
